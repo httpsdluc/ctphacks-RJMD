@@ -10,20 +10,17 @@ import { PasteFallback } from './components/PasteFallback';
 import { VisualStepper } from '../visuals/Stepper';
 import { DesignPreview } from './DesignPreview';
 import { PracticePicker, type PracticeLevel } from './components/PracticePicker';
-import { PanelMenu, type PanelPage } from './components/PanelMenu';
-
-/** ?design renders the static style reference instead of the live panel. */
-const DESIGN_MODE = new URLSearchParams(window.location.search).has('design');
 
 export function App() {
-  // Every hook runs before any early return — React requires a stable hook
-  // order, and DesignPreview used to return above useCoach().
-  const coach = useCoach();
-  const [showHistory, setShowHistory] = useState(false);
-  const [practiceLevel, setPracticeLevel] = useState<PracticeLevel>('Easy');
-  const [activePage, setActivePage] = useState<PanelPage>('coach');
+  if (new URLSearchParams(window.location.search).has('design')) {
+    return <DesignPreview />;
+  }
 
-  if (DESIGN_MODE) return <DesignPreview />;
+  const coach = useCoach();
+  const [activeView, setActiveView] = useState<'coach' | 'history' | 'settings'>('coach');
+  const [showActions, setShowActions] = useState(false);
+  const [practiceLevel, setPracticeLevel] = useState<PracticeLevel>('Easy');
+  const [username, setUsername] = useState('rayan');
 
   if (coach.status === 'loading') {
     return <div className="sn-shell sn-muted">Getting my bearings…</div>;
@@ -32,66 +29,73 @@ export function App() {
   if (coach.status === 'needs_paste') {
     return (
       <div className="sn-shell">
-        <PasteFallback onSubmit={coach.submitPaste} error={coach.detectionError} />
+        <PasteFallback onSubmit={coach.submitPaste} />
       </div>
     );
   }
 
   const r = coach.latest;
 
-  if (activePage !== 'coach') {
-    return (
-      <div className="sn-shell">
-        <PanelMenu activePage={activePage} onNavigate={setActivePage} />
-        {activePage === 'practice' && <PracticePicker value={practiceLevel} onChange={setPracticeLevel} />}
-        {activePage === 'progress' && <section className="sn-subpage"><span className="sn-eyebrow">Learning profile</span><h1>Your progress</h1><p>Your patterns become clearer one thoughtful attempt at a time.</p><ProfileCard profile={coach.profile} /></section>}
-        {activePage === 'settings' && <section className="sn-subpage"><span className="sn-eyebrow">Preferences</span><h1>Settings</h1><p>Your name and microphone permission live on this device for now.</p></section>}
-      </div>
-    );
-  }
-
   return (
     <div className="sn-shell">
-      <PanelMenu activePage={activePage} onNavigate={setActivePage} />
-      <header className="sn-header sn-problem-header">
-        <span className="sn-problem"><i className="sn-ai-dot" /> Gemini AI · {coach.problem?.title ?? 'No problem detected'}</span>
+      <header className="sn-welcome">
+        <div className="sn-welcome-copy">
+          <span className="sn-kicker">Sidenote</span>
+          <h1>Hello, {username}</h1>
+          <p>How can I help you learn today?</p>
+        </div>
+        <span className="sn-avatar" aria-label="Rayan">R</span>
       </header>
+      {activeView === 'coach' && <>
+        <header className="sn-header">
+        <div>
+          <span className="sn-eyebrow">Current problem</span>
+          <span className="sn-problem">{coach.problem?.title ?? 'No problem detected'}</span>
+        </div>
+        <span className="sn-status"><i /> Active</span>
+        </header>
 
-      {r?.learningGoal && (
+        {r?.learningGoal && (
         <p className="sn-goal">
           <span className="sn-goal-label">What we're after</span>
           {r.learningGoal}
         </p>
-      )}
+        )}
 
-      <CoachMessage response={r} thinking={coach.status === 'thinking'} />
+        <CoachMessage response={r} thinking={coach.status === 'thinking'} />
 
-      {r?.visual && <VisualStepper spec={r.visual} />}
-      {r?.video && <VideoCard video={r.video} />}
+        {r?.visual && <VisualStepper spec={r.visual} />}
+        {r?.video && <VideoCard video={r.video} />}
 
-      <ActionButtons
-        offered={r?.offeredActions ?? []}
-        blocked={r?.blockedActions ?? []}
-        disabled={coach.status === 'thinking'}
-        onAction={coach.requestAction}
-      />
+        <button type="button" className="sn-more" onClick={() => setShowActions((open) => !open)}>
+          <span>{showActions ? 'Hide' : 'More'} help options</span><b>{showActions ? '−' : '+'}</b>
+        </button>
+        {showActions && <ActionButtons
+          offered={r?.offeredActions ?? []}
+          blocked={r?.blockedActions ?? []}
+          disabled={coach.status === 'thinking'}
+          onAction={coach.requestAction}
+        />}
 
-      <ExplanationInput
-        question={r?.comprehensionQuestion ?? null}
-        disabled={coach.status === 'thinking'}
-        onSubmit={coach.submitExplanation}
-      />
+        <section className="sn-your-turn">
+          <span className="sn-section-label">Your turn</span>
+          <ExplanationInput
+            question={r?.comprehensionQuestion ?? null}
+            disabled={coach.status === 'thinking'}
+            onSubmit={coach.submitExplanation}
+          />
+        </section>
+      </>}
 
-      <button
-        type="button"
-        className="sn-link"
-        onClick={() => setShowHistory((v) => !v)}
-      >
-        {showHistory ? 'Hide' : 'Show'} what we've covered ({coach.history.length})
-      </button>
-      {showHistory && <HintHistory history={coach.history} />}
+      {activeView === 'history' && <section className="sn-view"><span className="sn-kicker">Learning record</span><h2>What we&apos;ve covered</h2><p className="sn-muted">Your recent coaching prompts and hints.</p><HintHistory history={coach.history} /></section>}
 
-      <ProfileCard profile={coach.profile} />
+      {activeView === 'settings' && <section className="sn-view"><span className="sn-kicker">Personalise</span><h2>Settings</h2><label className="sn-setting"><span>Your name</span><input value={username} maxLength={24} onChange={(e) => setUsername(e.target.value || 'rayan')} /></label><PracticePicker value={practiceLevel} onChange={setPracticeLevel} /><ProfileCard profile={coach.profile} /></section>}
+
+      <nav className="sn-bottom-nav" aria-label="Panel navigation">
+        <button className={activeView === 'coach' ? 'is-active' : ''} type="button" onClick={() => setActiveView('coach')}><b>✦</b><span>Coach</span></button>
+        <button className={activeView === 'history' ? 'is-active' : ''} type="button" onClick={() => setActiveView('history')}><b>≡</b><span>History</span><i>{coach.history.length}</i></button>
+        <button className={activeView === 'settings' ? 'is-active' : ''} type="button" onClick={() => setActiveView('settings')}><b>○</b><span>Settings</span></button>
+      </nav>
     </div>
   );
 }
