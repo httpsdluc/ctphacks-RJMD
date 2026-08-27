@@ -61,6 +61,9 @@ interface Written {
   analogy: string;
   comprehensionQuestion: string;
   expectedIdea: string;
+  evidence: string;
+  strength: string;
+  gap: string;
 }
 
 export async function coach(req: Request): Promise<Response> {
@@ -222,6 +225,13 @@ function assemble(
             prompt: written.comprehensionQuestion,
             expectedIdea: written.expectedIdea,
           }
+        : null,
+    // Only keep it if the model actually said something specific. A generic
+    // "you are on the right track" is worse than nothing — the deterministic
+    // summary is more honest than filler.
+    insight:
+      written.strength && written.gap
+        ? { evidence: written.evidence ?? '', strength: written.strength, gap: written.gap }
         : null,
     profileDelta: delta,
     learningGoal: LEARNING_GOALS[misconceptionId],

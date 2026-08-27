@@ -580,6 +580,7 @@ function fallbackFor(id, options = {}) {
     visual: null,
     video: null,
     comprehensionQuestion: null,
+    insight: null,
     profileDelta: {
       skillUpdates: {},
       incrementMisconception: id === "NONE" ? null : id,
@@ -22559,9 +22560,29 @@ var COACH_SCHEMA = {
     expectedIdea: {
       type: "string",
       description: 'What a correct answer to the comprehension question contains. Otherwise "".'
+    },
+    evidence: {
+      type: "string",
+      description: "At most 12 words quoted VERBATIM from what the learner wrote, showing where the misunderstanding lives. Empty string if they wrote nothing this turn."
+    },
+    strength: {
+      type: "string",
+      description: 'One specific thing THEIR reasoning gets right, referencing what they actually said. Never generic encouragement \u2014 "you are on the right track" is a failure.'
+    },
+    gap: {
+      type: "string",
+      description: "The single specific thing to change, in their own terms. One sentence. Never name the data structure and never give the solution."
     }
   },
-  required: ["message", "analogy", "comprehensionQuestion", "expectedIdea"]
+  required: [
+    "message",
+    "analogy",
+    "comprehensionQuestion",
+    "expectedIdea",
+    "evidence",
+    "strength",
+    "gap"
+  ]
 };
 function buildCoachInput(problem, attempt, misconceptionId, intervention) {
   const doNotRepeat = intervention.doNotRepeat.length ? intervention.doNotRepeat.map((m) => `- "${m}"`).join("\n") : "(nothing yet)";
@@ -22899,6 +22920,10 @@ function assemble(payload, misconceptionId, intervention, written, corrected, me
       prompt: written.comprehensionQuestion,
       expectedIdea: written.expectedIdea
     } : null,
+    // Only keep it if the model actually said something specific. A generic
+    // "you are on the right track" is worse than nothing — the deterministic
+    // summary is more honest than filler.
+    insight: written.strength && written.gap ? { evidence: written.evidence ?? "", strength: written.strength, gap: written.gap } : null,
     profileDelta: delta,
     learningGoal: LEARNING_GOALS[misconceptionId],
     meta: { fallbackUsed: false, model: meta.model, latencyMs: meta.latencyMs }

@@ -17,6 +17,7 @@ function response(over: Partial<CoachResponse>): CoachResponse {
     visual: null,
     video: null,
     comprehensionQuestion: null,
+    insight: null,
     profileDelta: {
       skillUpdates: {},
       incrementMisconception: null,

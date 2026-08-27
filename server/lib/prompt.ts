@@ -109,8 +109,34 @@ export const COACH_SCHEMA = {
       type: 'string',
       description: 'What a correct answer to the comprehension question contains. Otherwise "".',
     },
+    evidence: {
+      type: 'string',
+      description:
+        'At most 12 words quoted VERBATIM from what the learner wrote, showing where the ' +
+        'misunderstanding lives. Empty string if they wrote nothing this turn.',
+    },
+    strength: {
+      type: 'string',
+      description:
+        'One specific thing THEIR reasoning gets right, referencing what they actually said. ' +
+        'Never generic encouragement — "you are on the right track" is a failure.',
+    },
+    gap: {
+      type: 'string',
+      description:
+        'The single specific thing to change, in their own terms. One sentence. Never name ' +
+        'the data structure and never give the solution.',
+    },
   },
-  required: ['message', 'analogy', 'comprehensionQuestion', 'expectedIdea'],
+  required: [
+    'message',
+    'analogy',
+    'comprehensionQuestion',
+    'expectedIdea',
+    'evidence',
+    'strength',
+    'gap',
+  ],
 } as JsonSchema;
 
 export function buildCoachInput(

@@ -103,6 +103,7 @@ export function fallbackFor(
     visual: null,
     video: null,
     comprehensionQuestion: null,
+    insight: null,
     profileDelta: {
       skillUpdates: {},
       incrementMisconception: id === 'NONE' ? null : id,

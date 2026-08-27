@@ -20,14 +20,34 @@ export function HintHistory({
   profile: LearnerProfile;
 }) {
   const s = summariseSession(history, profile);
+  // Grounded in what they actually wrote; the derived summary below is the
+  // pattern across the session.
+  const insight = [...history].reverse().find((r) => r.insight)?.insight ?? null;
 
   return (
     <section className="sn-summary" aria-label="Session summary">
       <p className="sn-summary-headline">{s.headline}</p>
 
+      {insight && (
+        <div className="sn-insight">
+          <span className="sn-eyebrow">Reading your last attempt</span>
+          {insight.evidence && <blockquote className="sn-quote">“{insight.evidence}”</blockquote>}
+          <p className="sn-insight-line sn-good">
+            <b>Right</b>
+            {insight.strength}
+          </p>
+          <p className="sn-insight-line sn-bad">
+            <b>Gap</b>
+            {insight.gap}
+          </p>
+        </div>
+      )}
+
       {s.focus && (
-        <div className="sn-focus">
-          <span className="sn-eyebrow">The thing most in the way</span>
+        <div className={`sn-focus ${s.focus.kind === 'next' ? 'sn-focus--next' : ''}`}>
+          <span className="sn-eyebrow">
+            {s.focus.kind === 'blocker' ? 'The thing most in the way' : 'Where to go next'}
+          </span>
           <p className="sn-focus-label">{s.focus.label}</p>
           <dl className="sn-focus-detail">
             <dt>What it's really about</dt>

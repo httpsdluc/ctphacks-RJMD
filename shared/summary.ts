@@ -33,11 +33,18 @@ export interface SessionSummary {
   struggles: string[];
   path: string[];
   /**
-   * The specific read on the thing most in the way: what it is really about,
-   * what it looks like in their code, and the one thing to do next. A label
-   * without an action is not a diagnosis.
+   * The specific read: what it is really about, what it looks like in their
+   * code, and the one thing to do next. A label without an action is not a
+   * diagnosis.
+   *
+   * `kind` matters. When something is genuinely blocking them it is a blocker;
+   * when nothing is, it is what to look at next — and must NOT be framed as an
+   * obstacle. MISCONCEPTION_LABELS.NONE reads "approach is sound — praise and
+   * get out of the way", which is an instruction to the coach, not something a
+   * learner should ever be shown.
    */
   focus: {
+    kind: 'blocker' | 'next';
     label: string;
     about: string;
     tell: string;
@@ -193,16 +200,27 @@ export function summariseSession(
     }
   }
 
-  const focusId = worst?.[0] ?? (history.length > 0 ? 'NONE' : null);
-  const focus = focusId
-    ? {
-        label: MISCONCEPTION_LABELS[focusId],
-        about: MISCONCEPTION_DETAIL[focusId].about,
-        tell: MISCONCEPTION_DETAIL[focusId].tell,
-        nextStep: MISCONCEPTION_DETAIL[focusId].nextStep,
-        attempts: worst?.[1] ?? 0,
-      }
-    : null;
+  let focus: SessionSummary['focus'] = null;
+  if (worst) {
+    const [id, attempts] = worst;
+    focus = {
+      kind: 'blocker',
+      label: MISCONCEPTION_LABELS[id],
+      about: MISCONCEPTION_DETAIL[id].about,
+      tell: MISCONCEPTION_DETAIL[id].tell,
+      nextStep: MISCONCEPTION_DETAIL[id].nextStep,
+      attempts,
+    };
+  } else if (history.length > 0) {
+    focus = {
+      kind: 'next',
+      label: 'Your approach is holding up',
+      about: MISCONCEPTION_DETAIL.NONE.about,
+      tell: '',
+      nextStep: MISCONCEPTION_DETAIL.NONE.nextStep,
+      attempts: 0,
+    };
+  }
 
   return { headline, strengths, struggles, path: collapsed, focus };
 }

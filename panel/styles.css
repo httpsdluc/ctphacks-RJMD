@@ -196,3 +196,14 @@ button:focus-visible, textarea:focus-visible { outline: 3px solid rgba(198, 223,
 .sn-focus-detail dd { margin: 0; color: var(--sn-muted); font-size: 13px; line-height: 1.45; }
 .sn-focus-next { color: var(--sn-ink) !important; font-weight: 600; }
 .sn-next { color: var(--sn-accent); }
+.sn-focus--next { border-left-color: #8fd3ae; }
+
+/* ── the grounded read of the learner's own words ──────────── */
+.sn-insight { margin-top: 11px; padding: 11px 12px; border: 1px solid var(--sn-line);
+  border-radius: 8px; background: #202226; }
+.sn-quote { margin: 6px 0 9px; padding-left: 10px; border-left: 2px solid var(--sn-accent-dark);
+  color: var(--sn-ink); font-size: 13px; font-style: italic; line-height: 1.45; }
+.sn-insight-line { margin: 0 0 7px; font-size: 13px; line-height: 1.45; }
+.sn-insight-line:last-child { margin-bottom: 0; }
+.sn-insight-line b { display: block; font-size: 10px; font-weight: 700; letter-spacing: .09em;
+  text-transform: uppercase; opacity: .8; }

@@ -177,6 +177,26 @@ export interface BlockedAction {
   reason: string;
 }
 
+/**
+ * The specific read on THIS attempt, grounded in what the learner actually
+ * wrote. The deterministic summary in shared/summary.ts can only talk about
+ * categories — how often a misconception recurs, which help was tried. It has
+ * no access to their words, which is why it reads generic no matter how many
+ * signals it derives.
+ *
+ * This comes back from the coaching call that already runs, so it costs no
+ * extra request. Nullable: on a fallback there is nothing honest to put here,
+ * and an empty insight is better than an invented one.
+ */
+export interface CoachInsight {
+  /** At most ~12 words quoted from the learner. Empty if they wrote nothing. */
+  evidence: string;
+  /** What their reasoning genuinely gets right, in their terms. */
+  strength: string;
+  /** The one specific thing to change. Never names the data structure. */
+  gap: string;
+}
+
 export interface ComprehensionQuestion {
   id: string;
   prompt: string;
@@ -231,6 +251,8 @@ export interface CoachResponse {
   visual: VisualSpec | null;
   video: VideoRecommendation | null;
   comprehensionQuestion: ComprehensionQuestion | null;
+  /** Specific to this attempt. Null on fallbacks. */
+  insight: CoachInsight | null;
   profileDelta: ProfileDelta;
   /** "Recognising when a lookup beats a scan." Renders above the textarea. */
   learningGoal: string;

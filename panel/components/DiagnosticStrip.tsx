@@ -23,6 +23,7 @@ export function DiagnosticStrip({
   if (history.length === 0) return null;
 
   const s = summariseSession(history, profile);
+  const insight = [...history].reverse().find((r) => r.insight)?.insight ?? null;
   const topStrength = s.strengths[0];
   if (!s.focus && !topStrength) return null;
 
@@ -32,22 +33,20 @@ export function DiagnosticStrip({
       <p className="sn-diagnostic-headline">{s.headline}</p>
 
       <ul className="sn-diagnostic-points">
-        {topStrength && (
-          <li className="sn-good">
-            <b>Working</b>
-            {topStrength}
-          </li>
-        )}
-        {s.focus && (
+        <li className="sn-good">
+          <b>Right</b>
+          {insight?.strength ?? topStrength}
+        </li>
+        {s.focus?.kind === 'blocker' && (
           <li className="sn-bad">
             <b>Costing you{s.focus.attempts > 1 ? ` · ${s.focus.attempts} attempts` : ''}</b>
             {s.focus.label}
           </li>
         )}
-        {s.focus && (
+        {(insight?.gap || s.focus) && (
           <li className="sn-next">
             <b>Do this next</b>
-            {s.focus.nextStep}
+            {insight?.gap ?? s.focus?.nextStep}
           </li>
         )}
       </ul>
