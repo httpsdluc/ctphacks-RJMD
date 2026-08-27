@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "sessionCount": 3,
+  "skills": {
+    "hash_maps": "struggling",
+    "complexity_analysis": "improving",
+    "array_traversal": "solid",
+    "problem_decomposition": "unknown"
+  },
+  "misconceptionCounts": { "TS_BRUTE_FORCE_ONLY": 2 },
+  "deliveredInterventions": { "TS_BRUTE_FORCE_ONLY": ["question"] },
+  "priorCoachMessages": [
+    "Walk me through what your loops do when the array has a thousand elements — how many pairs do you end up looking at?"
+  ],
+  "modalityWins": { "question": 1, "analogy": 0, "visual": 2, "video": 0 },
+  "preferredModality": "visual",
+  "lastIntervention": {
+    "misconceptionId": "TS_BRUTE_FORCE_ONLY",
+    "modality": "question",
+    "at": 1756300000000
+  },
+  "updatedAt": 1756300000000
+}

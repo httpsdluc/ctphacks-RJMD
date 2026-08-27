@@ -1,0 +1,27 @@
+/* A2: must not overlap the editor. Bottom-left is empty on every LeetCode layout. */
+#sidenote-bubble {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 2147483000;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font: 600 18px/1 ui-sans-serif, system-ui, sans-serif;
+  color: #fff;
+  background: #2f6f4f;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+#sidenote-bubble:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.34);
+}
+
+#sidenote-bubble:focus-visible {
+  outline: 2px solid #8fd3ae;
+  outline-offset: 3px;
+}

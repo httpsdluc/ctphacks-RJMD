@@ -1,0 +1,10 @@
+{
+  "source": "paste",
+  "slug": "two-sum",
+  "title": "1. Two Sum",
+  "statement": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice.",
+  "code": "class Solution:\n    def twoSum(self, nums, target):\n        pass",
+  "language": "python",
+  "sampleInput": { "nums": [2, 7, 11, 15], "target": 9 },
+  "capturedAt": 1756300000000
+}

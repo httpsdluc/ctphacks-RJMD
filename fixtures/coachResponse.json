@@ -1,0 +1,26 @@
+{
+  "misconceptionId": "TS_BRUTE_FORCE_ONLY",
+  "confidence": 0.91,
+  "message": "That will absolutely find the answer — so let's not touch whether it works. Instead: when you're standing at the number 2 and looking for its partner, what exactly are you searching the rest of the array for?",
+  "hintLevel": 1,
+  "modality": "question",
+  "offeredActions": ["hint", "analogy", "retry"],
+  "blockedActions": [
+    { "action": "visual", "reason": "Let's try one more idea in words first — I'll draw it if that doesn't land." },
+    { "action": "video", "reason": "A video is a big detour this early. Ask again if you're still stuck." }
+  ],
+  "analogy": null,
+  "visual": null,
+  "video": null,
+  "comprehensionQuestion": null,
+  "profileDelta": {
+    "skillUpdates": { "hash_maps": "struggling" },
+    "incrementMisconception": "TS_BRUTE_FORCE_ONLY",
+    "recordDelivered": { "misconceptionId": "TS_BRUTE_FORCE_ONLY", "modality": "question" },
+    "creditModality": null,
+    "appendCoachMessage": "That will absolutely find the answer — so let's not touch whether it works.",
+    "summary": "Hash maps → struggling. Still getting to know how you think."
+  },
+  "learningGoal": "Recognising when a lookup can replace a scan.",
+  "meta": { "fallbackUsed": false, "model": "claude-sonnet-5", "latencyMs": 1240 }
+}

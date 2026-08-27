@@ -1,0 +1,60 @@
+{
+  "kind": "hash_map_fill",
+  "title": "One pass, one lookup table",
+  "values": { "nums": [2, 7, 11, 15], "target": 9 },
+  "steps": [
+    {
+      "caption": "We walk the array once. Alongside it we keep a table of every number we've already seen, and where we saw it.",
+      "activeIndex": null,
+      "processedIndices": [],
+      "map": [],
+      "highlight": "none"
+    },
+    {
+      "caption": "i = 0. The number here is 2.",
+      "activeIndex": 0,
+      "processedIndices": [],
+      "map": [],
+      "highlight": "active"
+    },
+    {
+      "caption": "Before storing anything, ask the table a question: have I already seen the partner 2 needs?",
+      "activeIndex": 0,
+      "processedIndices": [],
+      "map": [],
+      "highlight": "miss",
+      "note": "9 - 2 = 7 — is 7 in the table?"
+    },
+    {
+      "caption": "The table is empty, so no. Now store 2 and where it lives.",
+      "activeIndex": 0,
+      "processedIndices": [],
+      "map": [{ "key": 2, "value": 0, "state": "just_added" }],
+      "highlight": "none",
+      "note": "2 → index 0"
+    },
+    {
+      "caption": "i = 1. The number here is 7.",
+      "activeIndex": 1,
+      "processedIndices": [0],
+      "map": [{ "key": 2, "value": 0, "state": "idle" }],
+      "highlight": "active"
+    },
+    {
+      "caption": "Same question, one lookup — not a scan of everything to the right.",
+      "activeIndex": 1,
+      "processedIndices": [0],
+      "map": [{ "key": 2, "value": 0, "state": "matched" }],
+      "highlight": "match",
+      "note": "9 - 7 = 2 — and 2 is right there, at index 0."
+    },
+    {
+      "caption": "Two indices, one pass through the array. We never looked at 11 or 15.",
+      "activeIndex": 1,
+      "processedIndices": [0],
+      "map": [{ "key": 2, "value": 0, "state": "matched" }],
+      "highlight": "match",
+      "note": "return [0, 1]"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "sidenote",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "AI coding coach that teaches instead of answering. Chrome MV3 side panel.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --experimental-strip-types server/lib/*.test.ts"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "esbuild": "^0.23.0",
+    "typescript": "^5.5.4"
+  }
+}

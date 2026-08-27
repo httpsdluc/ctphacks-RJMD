@@ -1,0 +1,6 @@
+{
+  "name": "sidenote-coach",
+  "private": true,
+  "type": "module",
+  "dependencies": { "@anthropic-ai/sdk": "^0.27.0" }
+}
