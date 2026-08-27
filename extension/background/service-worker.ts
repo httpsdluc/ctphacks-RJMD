@@ -30,10 +30,10 @@ let lastProblem: ProblemContext | null = null;
 let lastResponse: CoachResponse | null = null;
 let lastError: AdapterError | null = null;
 
-function remember(tabId: number | undefined, problem: ProblemContext): void {
+async function remember(tabId: number | undefined, problem: ProblemContext): Promise<void> {
   if (typeof tabId === 'number') problems.set(tabId, problem);
   lastProblem = problem;
-  void rememberProblem(problem);
+  await rememberProblem(problem);
 }
 
 async function activeTabId(): Promise<number | undefined> {
@@ -51,13 +51,38 @@ async function askTab(tabId: number): Promise<ProblemContext | null> {
       | Result<ProblemContext>
       | undefined;
     if (result?.ok) {
-      remember(tabId, result.value);
+      await remember(tabId, result.value);
       return result.value;
     }
     if (result && !result.ok) lastError = result.error;
     return null;
   } catch {
-    // No content script on this tab (wrong site, or not injected yet).
+    // Nothing answered. Reloading the extension orphans the content scripts in
+    // already-open tabs: their DOM survives (the bubble is still visible) but
+    // their runtime connection is severed, so this looks identical to "the page
+    // is unreadable". Re-inject and ask once more.
+    return reinjectAndAsk(tabId);
+  }
+}
+
+async function reinjectAndAsk(tabId: number): Promise<ProblemContext | null> {
+  try {
+    await chrome.scripting.executeScript({ target: { tabId }, files: ['content-script.js'] });
+    const result = (await chrome.tabs.sendMessage(tabId, { type: 'PROBLEM_REQUEST' })) as
+      | Result<ProblemContext>
+      | undefined;
+    if (result?.ok) {
+      await remember(tabId, result.value);
+      return result.value;
+    }
+    if (result && !result.ok) lastError = result.error;
+    return null;
+  } catch (err) {
+    lastError = {
+      code: 'SELECTOR_FAILED',
+      message: err instanceof Error ? err.message : 'Could not reach the page.',
+      strategy: 'reinject',
+    };
     return null;
   }
 }
@@ -120,8 +145,11 @@ onMessage({
     }
   },
 
-  PROBLEM_DETECTED: (msg, sender) => {
-    remember(sender.tab?.id, msg.payload);
+  // Returning the promise keeps the message channel — and the worker — alive
+  // until the session-storage write actually lands. Firing it and returning
+  // synchronously let Chrome sleep the worker mid-write, losing the problem.
+  PROBLEM_DETECTED: async (msg, sender) => {
+    await remember(sender.tab?.id, msg.payload);
   },
 
   PROBLEM_UNAVAILABLE: (msg) => {
