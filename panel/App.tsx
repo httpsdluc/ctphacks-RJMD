@@ -12,15 +12,18 @@ import { DesignPreview } from './DesignPreview';
 import { PracticePicker, type PracticeLevel } from './components/PracticePicker';
 import { PanelMenu, type PanelPage } from './components/PanelMenu';
 
-export function App() {
-  if (new URLSearchParams(window.location.search).has('design')) {
-    return <DesignPreview />;
-  }
+/** ?design renders the static style reference instead of the live panel. */
+const DESIGN_MODE = new URLSearchParams(window.location.search).has('design');
 
+export function App() {
+  // Every hook runs before any early return — React requires a stable hook
+  // order, and DesignPreview used to return above useCoach().
   const coach = useCoach();
   const [showHistory, setShowHistory] = useState(false);
   const [practiceLevel, setPracticeLevel] = useState<PracticeLevel>('Easy');
   const [activePage, setActivePage] = useState<PanelPage>('coach');
+
+  if (DESIGN_MODE) return <DesignPreview />;
 
   if (coach.status === 'loading') {
     return <div className="sn-shell sn-muted">Getting my bearings…</div>;

@@ -511,9 +511,14 @@ function decideIntervention(profile, misconceptionId) {
   const offered = ["retry"];
   if (!exhausted) {
     if (level !== null && level < 4) offered.push("hint");
-    if (count >= 2) {
-      const next = firstUnused([...delivered, modality], modality);
+    const used = [...delivered, modality];
+    if (count === 2) {
+      const next = firstUnused(used, modality);
       if (next) offered.push(ACTION_FOR[next]);
+    } else if (count >= 3) {
+      for (const m of CONTENT) {
+        if (!used.includes(m)) offered.push(ACTION_FOR[m]);
+      }
     }
   }
   const blocked = HELP_ACTIONS.filter((a) => !offered.includes(a)).map(

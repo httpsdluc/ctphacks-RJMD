@@ -164,10 +164,21 @@ export function decideIntervention(
   const offered: HelpAction[] = ['retry'];
   if (!exhausted) {
     if (level !== null && level < 4) offered.push('hint');
-    // Content is only ever OFFERED from L2 onward. At L1 the question stands alone.
-    if (count >= 2) {
-      const next = firstUnused([...delivered, modality], modality);
+
+    // At L1 the question stands alone — no escape hatches on the first ask.
+    // From L2 we offer the next rung. From L3, once the learner has actually
+    // engaged, they can reach for ANY help they have not had yet: the ladder
+    // decides what the coach volunteers, not what the learner is allowed to
+    // want. Without this the video rung needs five turns on one misconception
+    // and effectively never appears.
+    const used = [...delivered, modality];
+    if (count === 2) {
+      const next = firstUnused(used, modality);
       if (next) offered.push(ACTION_FOR[next]);
+    } else if (count >= 3) {
+      for (const m of CONTENT) {
+        if (!used.includes(m)) offered.push(ACTION_FOR[m]);
+      }
     }
   }
 
