@@ -78,7 +78,6 @@ export function App() {
         />}
 
         <section className="sn-your-turn">
-          <span className="sn-section-label">Your turn</span>
           <ExplanationInput
             question={r?.comprehensionQuestion ?? null}
             disabled={coach.status === 'thinking'}

@@ -147,3 +147,30 @@ button:focus-visible, textarea:focus-visible { outline: 3px solid rgba(198, 223,
 .sn-path li { color: var(--sn-muted); font-size: 13px; }
 .sn-eyebrow { display: block; font-size: 11px; text-transform: uppercase;
   letter-spacing: 0.08em; color: var(--sn-muted); }
+
+/* ── the composer ──────────────────────────────────────────────
+   .sn-input carried no styling of its own, so the live component wore
+   .sn-input--preview: a 55%-white overlay written for the light theme. On the
+   dark panel that rendered as the washed-out grey slab. The preview modifier
+   now stays where its name says it belongs. */
+.sn-input { padding: 14px; border: 1px solid var(--sn-line); border-radius: 12px;
+  background: var(--sn-paper); }
+.sn-input .sn-question { margin: 0 0 8px; color: var(--sn-ink); font-size: 13px; }
+
+.sn-composer { position: relative; }
+.sn-composer textarea { padding-right: 48px; }
+
+/* The mic had no rules at all — that was the bare white square. */
+.sn-mic { position: absolute; right: 9px; bottom: 11px; display: grid; place-items: center;
+  width: 32px; height: 32px; padding: 0; border: 1px solid var(--sn-line); border-radius: 50%;
+  background: #26282c; color: var(--sn-muted); font-size: 13px; line-height: 1; cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease; }
+.sn-mic:hover:not(:disabled) { color: var(--sn-ink); border-color: var(--sn-accent-dark); }
+.sn-mic:focus-visible { outline: 2px solid var(--sn-accent); outline-offset: 2px; }
+.sn-mic:disabled { opacity: .45; cursor: not-allowed; }
+.sn-mic.is-listening { background: #b34a42; border-color: #d4736a; color: #fff;
+  animation: sn-pulse 1.4s ease-in-out infinite; }
+@keyframes sn-pulse { 50% { box-shadow: 0 0 0 5px rgba(179, 74, 66, .28); } }
+
+.sn-mic-message { margin: 7px 0 0; color: var(--sn-muted); font-size: 12px; }
+.sn-mic-message.is-listening { color: #8fd3ae; }
