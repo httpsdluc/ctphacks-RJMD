@@ -9,7 +9,7 @@ export function CoachMessage({
   thinking: boolean;
 }) {
   if (thinking) {
-    return <div className="sn-coach sn-coach--thinking">Thinking that through…</div>;
+    return <div className="sn-coach sn-coach--thinking"><span className="sn-ai-label"><i /> AI COACH · ANALYZING</span>Thinking that through…</div>;
   }
   if (!response) {
     return (
@@ -20,6 +20,7 @@ export function CoachMessage({
   }
   return (
     <div className="sn-coach">
+      <span className="sn-ai-label"><i /> AI COACH · GUIDANCE</span>
       {response.hintLevel && (
         <span className="sn-level">Hint {response.hintLevel} of 4</span>
       )}

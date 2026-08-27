@@ -19,7 +19,7 @@ export function VisualStepper({ spec }: { spec: VisualSpec }) {
 
   return (
     <figure className="sn-visual">
-      <figcaption>{spec.title}</figcaption>
+      <figcaption><span className="sn-eyebrow">See it move</span><strong>{spec.title}</strong></figcaption>
       {spec.kind === 'array_scan' ? (
         <ArrayScan values={spec.values} step={step} />
       ) : (
@@ -27,19 +27,18 @@ export function VisualStepper({ spec }: { spec: VisualSpec }) {
       )}
       <p>{step.caption}</p>
       {step.note && <p className="sn-note">{step.note}</p>}
-      <nav>
-        <button type="button" onClick={() => setI((n) => Math.max(n - 1, 0))} disabled={i === 0}>
-          Prev
+      <nav aria-label="Visualization steps">
+        <button className="sn-step-button" type="button" aria-label="Previous step" onClick={() => setI((n) => Math.max(n - 1, 0))} disabled={i === 0}>
+          ←
         </button>
         <span>
           {i + 1} of {spec.steps.length}
         </span>
-        <button
-          type="button"
+        <button className="sn-step-button" type="button" aria-label="Next step"
           onClick={() => setI((n) => Math.min(n + 1, spec.steps.length - 1))}
           disabled={i === spec.steps.length - 1}
         >
-          Next
+          →
         </button>
       </nav>
     </figure>
