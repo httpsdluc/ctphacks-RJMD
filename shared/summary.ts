@@ -5,14 +5,20 @@
  * learner. They had just read those. A transcript is not a diagnostic.
  *
  * Everything needed for a real one is already in the profile — which
- * misconceptions keep recurring, which help actually moved them, which skills
- * shifted. So this derives it in code: no extra model call, no latency, no
+ * misconceptions recur, how deep the coach has had to escalate, which help
+ * actually moved them, which skills shifted, whether they have been here
+ * before. So this derives it in code: no extra model call, no latency, no
  * rate limit, and it cannot hallucinate praise the learner did not earn.
+ *
+ * The wording is chosen by the data rather than fixed: a first attempt, a
+ * third repeat, a wide-but-shallow session and a learner who corrected
+ * themselves each produce a different read. Same session in, same words out —
+ * which is what makes it trustworthy in a demo.
  *
  * Pure functions. No imports beyond the contract.
  */
 
-import { MISCONCEPTION_LABELS, SKILL_IDS, SKILL_LABELS } from './contracts.ts';
+import { MISCONCEPTION_LABELS, MODALITIES, SKILL_IDS, SKILL_LABELS } from './contracts.ts';
 import type {
   CoachResponse,
   LearnerProfile,
@@ -21,12 +27,9 @@ import type {
 } from './contracts.ts';
 
 export interface SessionSummary {
-  /** One line, the thing to read first. */
   headline: string;
-  /** Honest — empty when nothing has been earned yet. */
   strengths: string[];
   struggles: string[];
-  /** How the coach tried to help, in order. Not what it said. */
   path: string[];
 }
 
@@ -44,7 +47,6 @@ const MODALITY_WORKS: Record<Modality, string> = {
   video: 'Watching someone work through it is what moves you.',
 };
 
-/** Ordered worst-first: what is costing them the most attempts. */
 function rankedStruggles(profile: LearnerProfile): Array<[MisconceptionId, number]> {
   return (Object.entries(profile.misconceptionCounts) as Array<[MisconceptionId, number]>)
     .filter(([id, n]) => id !== 'NONE' && n > 0)
@@ -58,6 +60,15 @@ export function summariseSession(
   const strengths: string[] = [];
   const struggles: string[] = [];
   const path: string[] = [];
+
+  const ranked = rankedStruggles(profile);
+  const worst = ranked[0];
+  const distinct = ranked.length;
+  const totalMisses = ranked.reduce((n, [, c]) => n + c, 0);
+  const corrected = history.some((r, i) => i > 0 && r.misconceptionId === 'NONE');
+  const answered = history.filter((r) => r.comprehensionQuestion !== null).length;
+
+  /* ---- the path ---- */
 
   for (const r of history) {
     if (r.misconceptionId === 'NONE') {
@@ -79,8 +90,6 @@ export function summariseSession(
     if (state === 'solid') strengths.push(`${SKILL_LABELS[skill]} — solid`);
   }
 
-  // A correction is the only thing that really counts as progress here.
-  const corrected = history.some((r, i) => i > 0 && r.misconceptionId === 'NONE');
   if (corrected) {
     const before = [...history].reverse().find((r) => r.misconceptionId !== 'NONE');
     strengths.push(
@@ -90,13 +99,30 @@ export function summariseSession(
     );
   }
 
+  // Persistence is worth naming — most people guess again instead of re-explaining.
+  if (!corrected && history.length >= 3) {
+    strengths.push(`You have re-explained your thinking ${history.length} times instead of guessing`);
+  }
+
+  if (answered > 0) {
+    strengths.push(
+      answered === 1
+        ? 'You answered a comprehension check rather than skipping it'
+        : `You answered ${answered} comprehension checks`,
+    );
+  }
+
   if (profile.preferredModality) {
     strengths.push(MODALITY_WORKS[profile.preferredModality]);
   }
 
+  if (profile.sessionCount > 1) {
+    strengths.push(`Session ${profile.sessionCount} — you came back`);
+  }
+
   /* ---- what keeps tripping them ---- */
 
-  for (const [id, count] of rankedStruggles(profile)) {
+  for (const [id, count] of ranked) {
     struggles.push(
       count === 1
         ? MISCONCEPTION_LABELS[id]
@@ -104,16 +130,35 @@ export function summariseSession(
     );
   }
 
-  /* ---- headline ---- */
+  // How hard the coach has had to work on the worst one.
+  if (worst) {
+    const tried = profile.deliveredInterventions[worst[0]] ?? [];
+    const content = tried.filter((m) => m !== 'question');
+    if (content.length >= 2) {
+      struggles.push(
+        `We have tried ${content.map((m) => MODALITY_NOUN[m]).join(', ')} on this one`,
+      );
+    }
+    if (tried.length >= MODALITIES.length) {
+      struggles.push('Every kind of explanation is spent — worth talking it through from scratch');
+    }
+  }
 
-  const worst = rankedStruggles(profile)[0];
+  /* ---- headline, chosen by the shape of the session ---- */
+
   let headline: string;
   if (history.length === 0) {
     headline = 'Nothing covered yet. Tell me how you would approach it.';
   } else if (corrected && !worst) {
     headline = 'You got there, and you got there yourself.';
+  } else if (corrected && worst) {
+    headline = `Cleared it — after ${totalMisses} run${totalMisses === 1 ? '' : 's'} at ${MISCONCEPTION_LABELS[worst[0]]}.`;
   } else if (worst && worst[1] >= 3) {
     headline = `One idea is doing all the damage: ${MISCONCEPTION_LABELS[worst[0]]}.`;
+  } else if (distinct >= 3) {
+    headline = `Several things are moving at once. The biggest is ${MISCONCEPTION_LABELS[worst[0]]}.`;
+  } else if (history.length === 1 && worst) {
+    headline = `Early read: ${MISCONCEPTION_LABELS[worst[0]]}.`;
   } else if (worst) {
     headline = `Mostly one thing in the way so far: ${MISCONCEPTION_LABELS[worst[0]]}.`;
   } else {

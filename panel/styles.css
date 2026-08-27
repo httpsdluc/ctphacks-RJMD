@@ -174,3 +174,14 @@ button:focus-visible, textarea:focus-visible { outline: 3px solid rgba(198, 223,
 
 .sn-mic-message { margin: 7px 0 0; color: var(--sn-muted); font-size: 12px; }
 .sn-mic-message.is-listening { color: #8fd3ae; }
+
+/* ── diagnostic strip, on the coach screen ─────────────────── */
+.sn-diagnostic { padding: 12px 14px; border: 1px solid var(--sn-line); border-radius: 12px;
+  background: var(--sn-paper); }
+.sn-diagnostic-headline { margin: 5px 0 0; color: var(--sn-ink); font-size: 14px;
+  font-weight: 650; line-height: 1.4; }
+.sn-diagnostic-points { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.sn-diagnostic-points li { font-size: 13px; line-height: 1.4; }
+.sn-diagnostic-points b { display: block; font-size: 10px; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase; opacity: .8; }
+.sn-diagnostic .sn-link { margin-top: 11px; font-size: 12px; }

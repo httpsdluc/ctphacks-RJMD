@@ -82,3 +82,57 @@ test('the path describes the kind of help, not the words', () => {
   );
   assert.equal(s.path[0], 'Hint 3 — a real-life comparison, about nested loops, no hash-map insight');
 });
+
+test('different sessions produce genuinely different reads', () => {
+  const one = summariseSession(
+    [response({})],
+    profileWith({ misconceptionCounts: { TS_BRUTE_FORCE_ONLY: 1 } }),
+  );
+  const stuck = summariseSession(
+    [response({}), response({}), response({}), response({})],
+    profileWith({
+      misconceptionCounts: { TS_BRUTE_FORCE_ONLY: 4 },
+      deliveredInterventions: { TS_BRUTE_FORCE_ONLY: ['question', 'analogy', 'visual'] },
+    }),
+  );
+  const wide = summariseSession(
+    [response({}), response({}), response({})],
+    profileWith({
+      misconceptionCounts: {
+        TS_BRUTE_FORCE_ONLY: 1,
+        TS_COMPLEMENT_CONFUSION: 1,
+        TS_OFF_BY_ONE_INNER_LOOP: 1,
+      },
+    }),
+  );
+  const done = summariseSession(
+    [response({}), response({}), response({ misconceptionId: 'NONE', hintLevel: null })],
+    profileWith({ misconceptionCounts: { TS_BRUTE_FORCE_ONLY: 2 } }),
+  );
+
+  const heads = [one.headline, stuck.headline, wide.headline, done.headline];
+  assert.equal(new Set(heads).size, 4, `headlines repeated: ${JSON.stringify(heads)}`);
+  assert.match(one.headline, /Early read/);
+  assert.match(stuck.headline, /doing all the damage/);
+  assert.match(wide.headline, /Several things/);
+  assert.match(done.headline, /Cleared it/);
+});
+
+test('it names how hard the coach has already worked', () => {
+  const s = summariseSession(
+    [response({}), response({}), response({})],
+    profileWith({
+      misconceptionCounts: { TS_BRUTE_FORCE_ONLY: 3 },
+      deliveredInterventions: { TS_BRUTE_FORCE_ONLY: ['question', 'analogy', 'visual'] },
+    }),
+  );
+  assert.ok(s.struggles.some((x) => x.includes('We have tried')), s.struggles.join(' | '));
+});
+
+test('persistence counts as a strength, guessing does not', () => {
+  const s = summariseSession(
+    [response({}), response({}), response({})],
+    profileWith({ misconceptionCounts: { TS_BRUTE_FORCE_ONLY: 3 } }),
+  );
+  assert.ok(s.strengths.some((x) => x.includes('re-explained your thinking 3 times')));
+});

@@ -4,6 +4,7 @@ import { CoachMessage } from './components/CoachMessage';
 import { ActionButtons } from './components/ActionButtons';
 import { ExplanationInput } from './components/ExplanationInput';
 import { HintHistory } from './components/HintHistory';
+import { DiagnosticStrip } from './components/DiagnosticStrip';
 import { VideoCard } from './components/VideoCard';
 import { ProfileCard } from './components/ProfileCard';
 import { PasteFallback } from './components/PasteFallback';
@@ -64,6 +65,12 @@ export function App() {
 
         <CoachMessage response={r} thinking={coach.status === 'thinking'} />
 
+        <DiagnosticStrip
+          history={coach.history}
+          profile={coach.profile}
+          onOpen={() => setActiveView('history')}
+        />
+
         {r?.visual && <VisualStepper spec={r.visual} />}
         {r?.video && <VideoCard video={r.video} />}
 
@@ -88,8 +95,8 @@ export function App() {
 
       {activeView === 'history' && (
         <section className="sn-view">
-          <span className="sn-kicker">Learning record</span>
-          <h2>What we&apos;ve covered</h2>
+          <span className="sn-kicker">What we've covered</span>
+          <h2>Your diagnosis</h2>
           <p className="sn-muted">What&apos;s landing, what keeps costing you attempts.</p>
           <HintHistory history={coach.history} profile={coach.profile} />
         </section>
@@ -99,7 +106,7 @@ export function App() {
 
       <nav className="sn-bottom-nav" aria-label="Panel navigation">
         <button className={activeView === 'coach' ? 'is-active' : ''} type="button" onClick={() => setActiveView('coach')}><b>✦</b><span>Coach</span></button>
-        <button className={activeView === 'history' ? 'is-active' : ''} type="button" onClick={() => setActiveView('history')}><b>≡</b><span>History</span><i>{coach.history.length}</i></button>
+        <button className={activeView === 'history' ? 'is-active' : ''} type="button" onClick={() => setActiveView('history')}><b>≡</b><span>Diagnosis</span></button>
         <button className={activeView === 'settings' ? 'is-active' : ''} type="button" onClick={() => setActiveView('settings')}><b>○</b><span>Settings</span></button>
       </nav>
     </div>
