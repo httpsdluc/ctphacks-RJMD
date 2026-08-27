@@ -185,3 +185,14 @@ button:focus-visible, textarea:focus-visible { outline: 3px solid rgba(198, 223,
 .sn-diagnostic-points b { display: block; font-size: 10px; font-weight: 700;
   letter-spacing: .09em; text-transform: uppercase; opacity: .8; }
 .sn-diagnostic .sn-link { margin-top: 11px; font-size: 12px; }
+
+/* ── the focus block: label + meaning + action ─────────────── */
+.sn-focus { margin-top: 12px; padding: 11px 12px; border: 1px solid var(--sn-line);
+  border-left: 3px solid #e8b473; border-radius: 8px; background: #202226; }
+.sn-focus-label { margin: 5px 0 0; color: var(--sn-ink); font-size: 14px; font-weight: 650; }
+.sn-focus-detail { margin: 9px 0 0; display: grid; gap: 2px; }
+.sn-focus-detail dt { color: var(--sn-faint); font-size: 10px; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase; margin-top: 7px; }
+.sn-focus-detail dd { margin: 0; color: var(--sn-muted); font-size: 13px; line-height: 1.45; }
+.sn-focus-next { color: var(--sn-ink) !important; font-weight: 600; }
+.sn-next { color: var(--sn-accent); }

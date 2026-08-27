@@ -23,9 +23,8 @@ export function DiagnosticStrip({
   if (history.length === 0) return null;
 
   const s = summariseSession(history, profile);
-  const topStruggle = s.struggles[0];
   const topStrength = s.strengths[0];
-  if (!topStruggle && !topStrength) return null;
+  if (!s.focus && !topStrength) return null;
 
   return (
     <section className="sn-diagnostic" aria-label="Where you stand">
@@ -39,10 +38,16 @@ export function DiagnosticStrip({
             {topStrength}
           </li>
         )}
-        {topStruggle && (
+        {s.focus && (
           <li className="sn-bad">
-            <b>Costing you</b>
-            {topStruggle}
+            <b>Costing you{s.focus.attempts > 1 ? ` · ${s.focus.attempts} attempts` : ''}</b>
+            {s.focus.label}
+          </li>
+        )}
+        {s.focus && (
+          <li className="sn-next">
+            <b>Do this next</b>
+            {s.focus.nextStep}
           </li>
         )}
       </ul>

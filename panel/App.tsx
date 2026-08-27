@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCoach } from './state/useCoach';
 import { CoachMessage } from './components/CoachMessage';
 import { ActionButtons } from './components/ActionButtons';
@@ -21,7 +21,13 @@ export function App() {
   const [activeView, setActiveView] = useState<'coach' | 'history' | 'settings'>('coach');
   const [showActions, setShowActions] = useState(false);
   const [practiceLevel, setPracticeLevel] = useState<PracticeLevel>('Easy');
-  const [username, setUsername] = useState('rayan');
+  const [username, setUsername] = useState(
+    () => localStorage.getItem('thinkpad-name') ?? '',
+  );
+  useEffect(() => {
+    localStorage.setItem('thinkpad-name', username);
+  }, [username]);
+  const displayName = username.trim();
 
   if (coach.status === 'loading') {
     return <div className="sn-shell sn-muted">Getting my bearings…</div>;
@@ -42,10 +48,12 @@ export function App() {
       <header className="sn-welcome">
         <div className="sn-welcome-copy">
           <span className="sn-kicker">ThinkPad</span>
-          <h1>Hello, {username}</h1>
+          <h1>{displayName ? `Hello, ${displayName}` : 'Hello'}</h1>
           <p>How can I help you learn today?</p>
         </div>
-        <span className="sn-avatar" aria-label="Rayan">R</span>
+        <span className="sn-avatar" aria-label={displayName || 'ThinkPad'}>
+          {(displayName[0] ?? 'T').toUpperCase()}
+        </span>
       </header>
       {activeView === 'coach' && <>
         <header className="sn-header">
@@ -102,7 +110,7 @@ export function App() {
         </section>
       )}
 
-      {activeView === 'settings' && <section className="sn-view"><span className="sn-kicker">Personalise</span><h2>Settings</h2><label className="sn-setting"><span>Your name</span><input value={username} maxLength={24} onChange={(e) => setUsername(e.target.value || 'rayan')} /></label><PracticePicker value={practiceLevel} onChange={setPracticeLevel} /><ProfileCard profile={coach.profile} /></section>}
+      {activeView === 'settings' && <section className="sn-view"><span className="sn-kicker">Personalise</span><h2>Settings</h2><label className="sn-setting"><span>Your name</span><input value={username} maxLength={24} placeholder="What should I call you?" onChange={(e) => setUsername(e.target.value)} /></label><PracticePicker value={practiceLevel} onChange={setPracticeLevel} /><ProfileCard profile={coach.profile} /></section>}
 
       <nav className="sn-bottom-nav" aria-label="Panel navigation">
         <button className={activeView === 'coach' ? 'is-active' : ''} type="button" onClick={() => setActiveView('coach')}><b>✦</b><span>Coach</span></button>

@@ -25,6 +25,25 @@ export function HintHistory({
     <section className="sn-summary" aria-label="Session summary">
       <p className="sn-summary-headline">{s.headline}</p>
 
+      {s.focus && (
+        <div className="sn-focus">
+          <span className="sn-eyebrow">The thing most in the way</span>
+          <p className="sn-focus-label">{s.focus.label}</p>
+          <dl className="sn-focus-detail">
+            <dt>What it's really about</dt>
+            <dd>{s.focus.about}</dd>
+            {s.focus.tell && (
+              <>
+                <dt>How it shows up</dt>
+                <dd>{s.focus.tell}</dd>
+              </>
+            )}
+            <dt>Do this next</dt>
+            <dd className="sn-focus-next">{s.focus.nextStep}</dd>
+          </dl>
+        </div>
+      )}
+
       {s.strengths.length > 0 && (
         <div className="sn-summary-block">
           <span className="sn-eyebrow">What's working</span>

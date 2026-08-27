@@ -19,6 +19,7 @@
  */
 
 import { MISCONCEPTION_LABELS, MODALITIES, SKILL_IDS, SKILL_LABELS } from './contracts.ts';
+import { MISCONCEPTION_DETAIL } from './misconceptions.ts';
 import type {
   CoachResponse,
   LearnerProfile,
@@ -31,6 +32,18 @@ export interface SessionSummary {
   strengths: string[];
   struggles: string[];
   path: string[];
+  /**
+   * The specific read on the thing most in the way: what it is really about,
+   * what it looks like in their code, and the one thing to do next. A label
+   * without an action is not a diagnosis.
+   */
+  focus: {
+    label: string;
+    about: string;
+    tell: string;
+    nextStep: string;
+    attempts: number;
+  } | null;
 }
 
 const MODALITY_NOUN: Record<Modality, string> = {
@@ -84,10 +97,12 @@ export function summariseSession(
 
   /* ---- what is going well ---- */
 
+  const strugglingSkills: string[] = [];
   for (const skill of SKILL_IDS) {
     const state = profile.skills[skill];
     if (state === 'improving') strengths.push(`${SKILL_LABELS[skill]} — improving`);
     if (state === 'solid') strengths.push(`${SKILL_LABELS[skill]} — solid`);
+    if (state === 'struggling') strugglingSkills.push(`${SKILL_LABELS[skill]} — needs work`);
   }
 
   if (corrected) {
@@ -123,12 +138,13 @@ export function summariseSession(
   /* ---- what keeps tripping them ---- */
 
   for (const [id, count] of ranked) {
-    struggles.push(
-      count === 1
-        ? MISCONCEPTION_LABELS[id]
-        : `${MISCONCEPTION_LABELS[id]} — came back ${count} times`,
-    );
+    const times = count === 1 ? '' : ` — came back ${count} times`;
+    struggles.push(`${MISCONCEPTION_LABELS[id]}${times}`);
+    if (MISCONCEPTION_DETAIL[id].tell) {
+      struggles.push(`In your code: ${MISCONCEPTION_DETAIL[id].tell}`);
+    }
   }
+  struggles.push(...strugglingSkills);
 
   // How hard the coach has had to work on the worst one.
   if (worst) {
@@ -165,5 +181,28 @@ export function summariseSession(
     headline = 'Your approach is holding up.';
   }
 
-  return { headline, strengths, struggles, path };
+  const collapsed: string[] = [];
+  for (const step of path) {
+    const last = collapsed[collapsed.length - 1];
+    const base = last?.replace(/ ×\d+$/, '');
+    if (base === step) {
+      const n = Number(last.match(/×(\d+)$/)?.[1] ?? 1) + 1;
+      collapsed[collapsed.length - 1] = `${step} ×${n}`;
+    } else {
+      collapsed.push(step);
+    }
+  }
+
+  const focusId = worst?.[0] ?? (history.length > 0 ? 'NONE' : null);
+  const focus = focusId
+    ? {
+        label: MISCONCEPTION_LABELS[focusId],
+        about: MISCONCEPTION_DETAIL[focusId].about,
+        tell: MISCONCEPTION_DETAIL[focusId].tell,
+        nextStep: MISCONCEPTION_DETAIL[focusId].nextStep,
+        attempts: worst?.[1] ?? 0,
+      }
+    : null;
+
+  return { headline, strengths, struggles, path: collapsed, focus };
 }
