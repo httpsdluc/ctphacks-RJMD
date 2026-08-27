@@ -8,10 +8,17 @@ import { VideoCard } from './components/VideoCard';
 import { ProfileCard } from './components/ProfileCard';
 import { PasteFallback } from './components/PasteFallback';
 import { VisualStepper } from '../visuals/Stepper';
+import { DesignPreview } from './DesignPreview';
+import { PracticePicker, type PracticeLevel } from './components/PracticePicker';
 
 export function App() {
+  if (new URLSearchParams(window.location.search).has('design')) {
+    return <DesignPreview />;
+  }
+
   const coach = useCoach();
   const [showHistory, setShowHistory] = useState(false);
+  const [practiceLevel, setPracticeLevel] = useState<PracticeLevel>('Easy');
 
   if (coach.status === 'loading') {
     return <div className="sn-shell sn-muted">Getting my bearings…</div>;
@@ -29,6 +36,7 @@ export function App() {
 
   return (
     <div className="sn-shell">
+      <PracticePicker value={practiceLevel} onChange={setPracticeLevel} />
       <header className="sn-header">
         <span className="sn-mark">Sidenote</span>
         <span className="sn-problem">{coach.problem?.title ?? 'No problem detected'}</span>
