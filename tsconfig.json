@@ -11,9 +11,10 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "baseUrl": ".",
-    "types": ["chrome"],
+    "types": ["chrome", "node"],
     "paths": {
       "@shared/*": ["./shared/*"],
       "@fixtures/*": ["./fixtures/*"],

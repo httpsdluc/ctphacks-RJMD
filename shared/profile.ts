@@ -11,7 +11,7 @@ import {
   MODALITIES,
   PREFERRED_MODALITY_THRESHOLD,
   SKILL_IDS,
-} from './contracts';
+} from './contracts.ts';
 import type {
   LearnerProfile,
   MisconceptionId,
@@ -19,7 +19,7 @@ import type {
   ProfileDelta,
   SkillId,
   SkillState,
-} from './contracts';
+} from './contracts.ts';
 
 export function createProfile(now: number): LearnerProfile {
   return {
