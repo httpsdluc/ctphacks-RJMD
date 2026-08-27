@@ -34,32 +34,61 @@ function unmountBubble(): void {
 }
 
 /**
- * A8 — the description pane renders after document_idle on a cold load, so a
- * single attempt reports SELECTOR_FAILED on a page that is merely still
- * loading. Retry on a short backoff before falling back to paste; the learner
- * should not be asked to paste something the page was about to give us.
+ * A8 — LeetCode renders the description pane well after document_idle, and how
+ * long it takes depends on the network and whether the tab was restored from a
+ * cold start. Fixed retry delays are a guess about someone else's render loop,
+ * and guessing short means the learner gets asked to paste a problem the page
+ * was about to hand us.
+ *
+ * So: watch for the element and act when it exists.
  */
-const RETRY_DELAYS_MS = [0, 400, 900, 1800];
+const DESCRIPTION = '[data-track-load="description_content"]';
+const WAIT_TIMEOUT_MS = 12_000;
 
-function publish(attempt = 0): void {
+function waitForDescription(): Promise<boolean> {
+  if (document.querySelector(DESCRIPTION)) return Promise.resolve(true);
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (found: boolean) => {
+      if (settled) return;
+      settled = true;
+      observer.disconnect();
+      clearTimeout(timer);
+      resolve(found);
+    };
+
+    const observer = new MutationObserver(() => {
+      if (document.querySelector(DESCRIPTION)) finish(true);
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+
+    const timer = setTimeout(() => finish(false), WAIT_TIMEOUT_MS);
+  });
+}
+
+async function publish(): Promise<void> {
   if (!slugFromUrl(location.href)) {
     unmountBubble();
     return;
   }
   mountBubble();
 
+  await waitForDescription();
+
   const result = detectProblem();
   if (result.ok) {
+    console.debug('[sidenote] detected', result.value.title, '|', result.value.language);
     send({ type: 'PROBLEM_DETECTED', payload: result.value });
     return;
   }
 
-  const next = attempt + 1;
-  if (next < RETRY_DELAYS_MS.length && result.error.code === 'SELECTOR_FAILED') {
-    setTimeout(() => publish(next), RETRY_DELAYS_MS[next]);
-    return;
-  }
-
+  // Say why, loudly enough to debug from the page console.
+  console.warn(
+    `[sidenote] falling back to paste: ${result.error.code}` +
+      (result.error.strategy ? ` (${result.error.strategy})` : '') +
+      ` — ${result.error.message}`,
+  );
   send({ type: 'PROBLEM_UNAVAILABLE', payload: result.error });
 }
 
@@ -69,7 +98,7 @@ function watchNavigation(): void {
   new MutationObserver(() => {
     if (location.href !== last) {
       last = location.href;
-      setTimeout(() => publish(), 600); // let the new pane render
+      setTimeout(() => void publish(), 600); // let the new pane render
     }
   }).observe(document.body, { childList: true, subtree: true });
 }
@@ -79,5 +108,5 @@ onMessage({
   PROBLEM_REQUEST: () => Promise.resolve(detectProblem()),
 });
 
-publish();
+void publish();
 watchNavigation();
