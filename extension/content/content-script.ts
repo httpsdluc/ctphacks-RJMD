@@ -45,8 +45,14 @@ function unmountBubble(): void {
 const DESCRIPTION = '[data-track-load="description_content"]';
 const WAIT_TIMEOUT_MS = 12_000;
 
+/** Ready when the markup hook appears OR the statement text is simply on screen. */
+function descriptionReady(): boolean {
+  if (document.querySelector(DESCRIPTION)) return true;
+  return (document.body?.innerText ?? '').includes('Example 1');
+}
+
 function waitForDescription(): Promise<boolean> {
-  if (document.querySelector(DESCRIPTION)) return Promise.resolve(true);
+  if (descriptionReady()) return Promise.resolve(true);
 
   return new Promise((resolve) => {
     let settled = false;
@@ -59,7 +65,7 @@ function waitForDescription(): Promise<boolean> {
     };
 
     const observer = new MutationObserver(() => {
-      if (document.querySelector(DESCRIPTION)) finish(true);
+      if (descriptionReady()) finish(true);
     });
     observer.observe(document.documentElement, { childList: true, subtree: true });
 

@@ -75,6 +75,22 @@ function readStatement(): { value: string; strategy: string } | null {
   const rendered = document.querySelector('[data-qd-rendered-description]');
   if (text(rendered)) return { value: normalise(text(rendered)), strategy: 'qd-rendered' };
 
+  // 3. No markup hooks at all — find it by what it SAYS. Every LeetCode
+  //    statement contains an "Example 1:" block, and the smallest element that
+  //    contains both that and the constraints is the description body. This
+  //    survives a layout the other two strategies have never seen, which is the
+  //    whole point of having a third one: the first two were written against a
+  //    logged-out page, and a logged-in page is a different DOM.
+  const candidates = [...document.querySelectorAll<HTMLElement>('div, section, article')].filter(
+    (el) => {
+      const t = el.innerText ?? '';
+      return t.includes('Example 1') && /nums|Constraints/.test(t) && t.length < 12_000;
+    },
+  );
+  // Smallest match = the tightest wrapper around the statement, not the page.
+  const best = candidates.sort((a, b) => (a.innerText?.length ?? 0) - (b.innerText?.length ?? 0))[0];
+  if (text(best)) return { value: normalise(text(best)), strategy: 'by-content' };
+
   return null;
 }
 
