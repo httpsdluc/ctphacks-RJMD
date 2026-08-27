@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "A coding coach that asks instead of answers.",
   "permissions": ["sidePanel", "storage", "activeTab"],
-  "host_permissions": ["https://sidenote-coach.vercel.app/*"],
+  "host_permissions": ["https://ctp-rjmd.vercel.app/*"],
   "background": { "service_worker": "service-worker.js" },
   "action": { "default_title": "Open Sidenote" },
   "side_panel": { "default_path": "panel/index.html" },

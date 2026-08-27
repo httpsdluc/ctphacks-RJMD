@@ -18,6 +18,7 @@ import { applyProfileDelta, countFor, summariseProfile } from '../../shared/prof
 import { creditFor, decideIntervention } from '../lib/escalation.ts';
 import { fallbackFor, LEARNING_GOALS } from '../lib/fallbacks.ts';
 import { generateJson } from '../lib/gemini.ts';
+import { guardDiagnosis } from '../lib/guard.ts';
 import {
   buildCoachInput,
   buildDiagnosisInput,
@@ -82,8 +83,13 @@ export async function coach(req: Request): Promise<Response> {
     DIAGNOSIS_SCHEMA,
   );
 
-  const misconceptionId: MisconceptionId =
+  const proposed: MisconceptionId =
     diag.value && diag.value.confidence >= CONFIDENCE_FLOOR ? diag.value.misconceptionId : 'NONE';
+
+  // NONE tells the learner to go write it. We do not let the model say that
+  // about an approach with no memory in it. See lib/guard.ts.
+  const guarded = guardDiagnosis(proposed, attempt.text, problem.code);
+  const misconceptionId = guarded.misconceptionId;
 
   /* 2. Our code decides how hard to push. ------------------------------ */
   // The count the machine reasons about is the one AFTER this attempt.
@@ -119,7 +125,9 @@ export async function coach(req: Request): Promise<Response> {
   const rejection = candidate ? rejectionFor(candidate) : { reason: written.error ?? 'no output' };
   if (!candidate || rejection) {
     const fb = fallbackFor(misconceptionId, {
-      hintLevel: intervention.hintLevel,
+      // NONE is praise, not a hint. Forcing level 1 onto it produces an "L1"
+      // that does not end in a question, which our own contract forbids.
+      hintLevel: misconceptionId === 'NONE' ? null : intervention.hintLevel,
       modality: 'question',
       offeredActions: intervention.offeredActions,
       note: rejection?.reason,

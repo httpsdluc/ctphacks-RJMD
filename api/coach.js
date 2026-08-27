@@ -22457,6 +22457,25 @@ async function generateJson(input, schema) {
   }
 }
 
+// server/lib/guard.ts
+var MEMORY = /\b(map|maps|dict|dictionary|hash(?:map|table)?|set|seen|store[ds]?|storing|remember(?:ing|ed)?|lookup|look ?up|table|cache|index(?:es|ed)?|previous(?:ly)?)\b/i;
+var EXHAUSTIVE = /\b(every|all|each)\b[^.]{0,40}\b(pair|pairs|combination|combinations|possibilit\w+)\b|\bnested loops?\b|\btwo loops\b|\bloop (?:through|over)[^.]{0,30}\bagain\b|\bcompare\b[^.]{0,40}\b(?:with|against)\b[^.]{0,20}\bothers?\b|\bcheck them all\b|\bbrute[- ]force\b/i;
+function guardDiagnosis(diagnosed, attemptText, code) {
+  if (diagnosed !== "NONE") return { misconceptionId: diagnosed, overridden: false };
+  const evidence = `${attemptText}
+${code}`;
+  if (attemptText.trim().length < 20) return { misconceptionId: "NONE", overridden: false };
+  if (MEMORY.test(evidence)) return { misconceptionId: "NONE", overridden: false };
+  if (EXHAUSTIVE.test(evidence)) {
+    return {
+      misconceptionId: "TS_BRUTE_FORCE_ONLY",
+      overridden: true,
+      reason: "NONE claimed, but nothing is remembered and the search is exhaustive"
+    };
+  }
+  return { misconceptionId: "NONE", overridden: false };
+}
+
 // server/lib/prompt.ts
 var TAXONOMY = MISCONCEPTION_IDS.map((id) => `  ${id} \u2014 ${MISCONCEPTION_LABELS[id]}`).join("\n");
 var DIAGNOSIS_SYSTEM = `You are diagnosing a beginner's understanding of the Two Sum problem.
@@ -22473,7 +22492,16 @@ Rules:
 - If two apply, pick the one that is furthest upstream \u2014 the one that, once fixed,
   makes the other disappear.
 - If nothing fits, or you are guessing, return NONE with a low confidence rather than
-  inventing a misconception. A wrong diagnosis is worse than no diagnosis.`;
+  inventing a misconception. A wrong diagnosis is worse than no diagnosis.
+
+NONE is the most dangerous label to get wrong, because it tells the learner their
+approach is sound and to go write it. Two rules protect it:
+- Describing a check of every pair or every combination is TS_BRUTE_FORCE_ONLY, in
+  ANY wording \u2014 "all combinations", "compare each one with the others", "try every
+  possibility", "check them all". It is never NONE, however confident or tidy it sounds.
+- NONE requires that they describe REMEMBERING what they have already seen and looking
+  the partner up. If nothing in their description keeps track of past elements, it is
+  not NONE.`;
 var DIAGNOSIS_SCHEMA = {
   type: "object",
   properties: {
@@ -22716,7 +22744,9 @@ async function coach(req) {
     buildDiagnosisInput(problem, attempt),
     DIAGNOSIS_SCHEMA
   );
-  const misconceptionId = diag.value && diag.value.confidence >= CONFIDENCE_FLOOR ? diag.value.misconceptionId : "NONE";
+  const proposed = diag.value && diag.value.confidence >= CONFIDENCE_FLOOR ? diag.value.misconceptionId : "NONE";
+  const guarded = guardDiagnosis(proposed, attempt.text, problem.code);
+  const misconceptionId = guarded.misconceptionId;
   const projected = {
     ...profile,
     misconceptionCounts: {
@@ -22738,7 +22768,9 @@ async function coach(req) {
   const rejection = candidate ? rejectionFor(candidate) : { reason: written.error ?? "no output" };
   if (!candidate || rejection) {
     const fb = fallbackFor(misconceptionId, {
-      hintLevel: intervention.hintLevel,
+      // NONE is praise, not a hint. Forcing level 1 onto it produces an "L1"
+      // that does not end in a question, which our own contract forbids.
+      hintLevel: misconceptionId === "NONE" ? null : intervention.hintLevel,
       modality: "question",
       offeredActions: intervention.offeredActions,
       note: rejection?.reason
