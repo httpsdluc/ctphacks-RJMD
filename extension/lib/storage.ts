@@ -5,9 +5,10 @@
  */
 
 import { createProfile, isValidProfile } from '../../shared/profile';
-import type { LearnerProfile } from '../../shared/contracts';
+import type { LearnerProfile, ProblemContext } from '../../shared/contracts';
 
 const KEY = 'sidenote.profile.v1';
+const PROBLEM_KEY = 'sidenote.problem.v1';
 
 export async function readProfile(): Promise<LearnerProfile> {
   try {
@@ -32,4 +33,28 @@ export async function resetProfile(): Promise<LearnerProfile> {
   const fresh = createProfile(Date.now());
   await writeProfile(fresh);
   return fresh;
+}
+
+/**
+ * Service workers are killed aggressively — roughly 30 seconds idle. Anything
+ * the worker held in a module-level Map is gone by the time the learner reads
+ * the coach's question and presses a button, and every handler then silently
+ * does nothing. Session storage survives the restart and dies with the browser
+ * session, which is exactly the lifetime a detected problem should have.
+ */
+export async function rememberProblem(problem: ProblemContext): Promise<void> {
+  try {
+    await chrome.storage.session.set({ [PROBLEM_KEY]: problem });
+  } catch {
+    /* non-fatal */
+  }
+}
+
+export async function recallProblem(): Promise<ProblemContext | null> {
+  try {
+    const bag = await chrome.storage.session.get(PROBLEM_KEY);
+    return (bag[PROBLEM_KEY] as ProblemContext | undefined) ?? null;
+  } catch {
+    return null;
+  }
 }

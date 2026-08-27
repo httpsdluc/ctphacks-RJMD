@@ -6,7 +6,7 @@
 
 import { onMessage, send } from '../lib/bus';
 import { askCoach } from '../lib/coachClient';
-import { readProfile, writeProfile } from '../lib/storage';
+import { readProfile, recallProblem, rememberProblem, writeProfile } from '../lib/storage';
 import { applyProfileDelta } from '../../shared/profile';
 import { fromPaste } from '../adapters/leetcode';
 import type {
@@ -24,6 +24,7 @@ let lastResponse: CoachResponse | null = null;
 function remember(tabId: number | undefined, problem: ProblemContext): void {
   if (typeof tabId === 'number') problems.set(tabId, problem);
   lastProblem = problem;
+  void rememberProblem(problem);
 }
 
 async function activeTabId(): Promise<number | undefined> {
@@ -34,7 +35,9 @@ async function activeTabId(): Promise<number | undefined> {
 async function currentProblem(): Promise<ProblemContext | null> {
   const id = await activeTabId();
   if (typeof id === 'number' && problems.has(id)) return problems.get(id)!;
-  return lastProblem;
+  if (lastProblem) return lastProblem;
+  // The worker was restarted since detection. Session storage still has it.
+  return recallProblem();
 }
 
 async function runCoach(
@@ -42,7 +45,15 @@ async function runCoach(
   requestedAction: HelpAction | null,
 ): Promise<void> {
   const problem = await currentProblem();
-  if (!problem) return;
+  if (!problem) {
+    // Never fail silently: a dead button with no explanation is the worst
+    // possible outcome. Tell the panel so it can offer the paste box.
+    send({
+      type: 'PROBLEM_UNAVAILABLE',
+      payload: { code: 'TIMEOUT', message: 'Lost track of which problem you are on.' },
+    });
+    return;
+  }
 
   send({ type: 'COACH_PENDING' });
 

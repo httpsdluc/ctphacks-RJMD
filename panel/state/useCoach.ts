@@ -1,5 +1,7 @@
 /**
- * B's only contact with Track A. Flip USE_FIXTURES to false at CP3.
+ * B's only contact with Track A. USE_FIXTURES renders the panel entirely from
+ * fixtures/ with no service worker and no backend — useful for UI work, but the
+ * buttons do nothing in that mode, by design.
  * Until then the whole panel builds with the backend and the adapter deleted.
  */
 
@@ -17,7 +19,7 @@ import type {
   ProblemContext,
 } from '../../shared/contracts';
 
-export const USE_FIXTURES = true;
+export const USE_FIXTURES = false;
 
 export type PanelStatus = 'loading' | 'ready' | 'thinking' | 'needs_paste';
 
@@ -80,6 +82,8 @@ export function useCoach() {
       PROFILE_UPDATED: (msg) => setState((s) => ({ ...s, profile: msg.payload })),
       PROBLEM_DETECTED: (msg) =>
         setState((s) => ({ ...s, status: 'ready', problem: msg.payload })),
+      PROBLEM_UNAVAILABLE: () =>
+        setState((s) => (s.problem ? s : { ...s, status: 'needs_paste' })),
     });
 
     return () => {
