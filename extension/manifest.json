@@ -1,18 +1,36 @@
 {
   "manifest_version": 3,
-  "name": "Sidenote",
+  "name": "ThinkPad",
   "version": "0.1.0",
   "description": "A coding coach that asks instead of answers.",
-  "permissions": ["sidePanel", "storage", "activeTab"],
-  "host_permissions": ["https://ctp-rjmd.vercel.app/*"],
-  "background": { "service_worker": "service-worker.js" },
-  "action": { "default_title": "Open Sidenote" },
-  "side_panel": { "default_path": "panel/index.html" },
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://ctp-rjmd.vercel.app/*"
+  ],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "action": {
+    "default_title": "Open ThinkPad"
+  },
+  "side_panel": {
+    "default_path": "panel/index.html"
+  },
   "content_scripts": [
     {
-      "matches": ["https://leetcode.com/problems/*"],
-      "js": ["content-script.js"],
-      "css": ["bubble.css"],
+      "matches": [
+        "https://leetcode.com/problems/*"
+      ],
+      "js": [
+        "content-script.js"
+      ],
+      "css": [
+        "bubble.css"
+      ],
       "run_at": "document_idle"
     }
   ]

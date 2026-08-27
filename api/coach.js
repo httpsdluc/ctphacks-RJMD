@@ -22739,50 +22739,32 @@ function buildVideo(id, parts) {
     why: parts.why ?? VIDEO_WHY[id]
   };
 }
-var VIDEO_MAP = {
-  TS_BRUTE_FORCE_ONLY: buildVideo("TS_BRUTE_FORCE_ONLY", {
-    youtubeId: "KLlXCFG5TnA",
-    title: "Two Sum - Leetcode 1 - HashMap - Python",
-    channel: "NeetCode",
-    durationSec: 345,
-    startSec: 78
-  }),
-  TS_COMPLEMENT_CONFUSION: buildVideo("TS_COMPLEMENT_CONFUSION", {
-    youtubeId: "KLlXCFG5TnA",
-    title: "Two Sum - Leetcode 1 - HashMap - Python",
-    channel: "NeetCode",
-    durationSec: 345,
-    startSec: 78
-  }),
-  TS_MAP_DIRECTION_FLIPPED: buildVideo("TS_MAP_DIRECTION_FLIPPED", {
-    youtubeId: "KLlXCFG5TnA",
-    title: "Two Sum - Leetcode 1 - HashMap - Python",
-    channel: "NeetCode",
-    durationSec: 345,
-    startSec: 78
-  }),
-  TS_INSERT_BEFORE_CHECK: buildVideo("TS_INSERT_BEFORE_CHECK", {
-    youtubeId: "KLlXCFG5TnA",
-    title: "Two Sum - Leetcode 1 - HashMap - Python",
-    channel: "NeetCode",
-    durationSec: 345,
-    startSec: 78
-  }),
-  TS_RETURNS_VALUES_NOT_INDICES: buildVideo("TS_RETURNS_VALUES_NOT_INDICES", {
-    youtubeId: "KLlXCFG5TnA",
-    title: "Two Sum - Leetcode 1 - HashMap - Python",
-    channel: "NeetCode",
-    durationSec: 345,
-    startSec: 78
-  }),
-  TS_OFF_BY_ONE_INNER_LOOP: buildVideo("TS_OFF_BY_ONE_INNER_LOOP", {
-    youtubeId: "KLlXCFG5TnA",
-    title: "Two Sum - Leetcode 1 - HashMap - Python",
-    channel: "NeetCode",
-    durationSec: 345,
-    startSec: 78
-  })
+var VIDEO = {
+  youtubeId: "KLlXCFG5TnA",
+  title: "Two Sum - Leetcode 1 - HashMap - Python",
+  channel: "NeetCode",
+  durationSec: 345
 };
+var TIMESTAMPS = {
+  // "the moment they count how many pairs the nested-loop version checks"
+  TS_BRUTE_FORCE_ONLY: 78,
+  // "stop looking for a pair, start looking for one specific number"
+  TS_COMPLEMENT_CONFUSION: 78,
+  // "which of the two you have and which you need"
+  TS_MAP_DIRECTION_FLIPPED: 78,
+  // "they check first and store second, and what breaks if you swap them"
+  TS_INSERT_BEFORE_CHECK: 78,
+  // "they read the statement back and point at the word that decides the return"
+  TS_RETURNS_VALUES_NOT_INDICES: 78,
+  // "the exact moment an element gets paired with itself"
+  TS_OFF_BY_ONE_INNER_LOOP: 78
+};
+var VIDEO_MAP = Object.fromEntries(
+  Object.entries(TIMESTAMPS).map(([id, startSec]) => [
+    id,
+    buildVideo(id, { ...VIDEO, startSec })
+  ])
+);
 function videoFor(id) {
   const v = VIDEO_MAP[id];
   if (!v || !v.youtubeId || !v.title) return null;

@@ -7,8 +7,8 @@
 import { createProfile, isValidProfile } from '../../shared/profile';
 import type { LearnerProfile, ProblemContext } from '../../shared/contracts';
 
-const KEY = 'sidenote.profile.v1';
-const PROBLEM_KEY = 'sidenote.problem.v1';
+const KEY = 'thinkpad.profile.v1';
+const PROBLEM_KEY = 'thinkpad.problem.v1';
 
 export async function readProfile(): Promise<LearnerProfile> {
   try {
@@ -68,7 +68,7 @@ export async function recallProblem(): Promise<ProblemContext | null> {
  * counts once no matter how many times the worker restarts or the panel is
  * reopened, and counts again tomorrow.
  */
-const SESSION_FLAG = 'sidenote.sessionCounted.v1';
+const SESSION_FLAG = 'thinkpad.sessionCounted.v1';
 
 export async function countSessionOnce(profile: LearnerProfile): Promise<LearnerProfile> {
   try {

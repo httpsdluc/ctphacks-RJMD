@@ -27,13 +27,13 @@ export function PanelMenu({ activePage, onNavigate }: { activePage: PanelPage; o
   return (
     <>
       <header className="sn-topbar">
-        <button type="button" className="sn-menu-button" aria-label="Open Sidenote menu" aria-expanded={open} onClick={() => setOpen(true)}><span /><span /><span /></button>
-        <div><span className="sn-mark">Sidenote</span><span className="sn-topbar-page">{pageLabels[activePage]}</span></div>
+        <button type="button" className="sn-menu-button" aria-label="Open ThinkPad menu" aria-expanded={open} onClick={() => setOpen(true)}><span /><span /><span /></button>
+        <div><span className="sn-mark">ThinkPad</span><span className="sn-topbar-page">{pageLabels[activePage]}</span></div>
         <span className="sn-ai-pill"><i /> AI</span>
       </header>
       {open && <button type="button" className="sn-drawer-scrim" aria-label="Close menu" onClick={() => setOpen(false)} />}
-      <aside className={`sn-drawer ${open ? 'is-open' : ''}`} aria-label="Sidenote navigation">
-        <div className="sn-drawer-head"><span className="sn-mark">Sidenote</span><button type="button" className="sn-close-button" aria-label="Close menu" onClick={() => setOpen(false)}>×</button></div>
+      <aside className={`sn-drawer ${open ? 'is-open' : ''}`} aria-label="ThinkPad navigation">
+        <div className="sn-drawer-head"><span className="sn-mark">ThinkPad</span><button type="button" className="sn-close-button" aria-label="Close menu" onClick={() => setOpen(false)}>×</button></div>
         <div className="sn-drawer-greeting"><span className="sn-eyebrow">Your corner of the internet</span><strong>{greeting}</strong></div>
         <nav className="sn-drawer-nav">
           {(Object.keys(pageLabels) as PanelPage[]).map((page) => <button key={page} type="button" className={activePage === page ? 'is-active' : ''} onClick={() => { onNavigate(page); setOpen(false); }}><span>{page === 'coach' ? '✦' : page === 'practice' ? '◈' : page === 'progress' ? '↗' : '⚙'}</span>{pageLabels[page]}<b>→</b></button>)}

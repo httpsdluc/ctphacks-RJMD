@@ -9,7 +9,7 @@
 import { send, onMessage } from '../lib/bus';
 import { detectProblem, slugFromUrl } from '../adapters/leetcode';
 
-const BUBBLE_ID = 'sidenote-bubble';
+const BUBBLE_ID = 'thinkpad-bubble';
 
 function mountBubble(): void {
   if (document.getElementById(BUBBLE_ID)) return;
@@ -17,7 +17,7 @@ function mountBubble(): void {
   const bubble = document.createElement('button');
   bubble.id = BUBBLE_ID;
   bubble.type = 'button';
-  bubble.setAttribute('aria-label', 'Open Sidenote coach');
+  bubble.setAttribute('aria-label', 'Open ThinkPad coach');
   bubble.textContent = '?';
 
   bubble.addEventListener('click', () => {

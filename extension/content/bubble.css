@@ -14,7 +14,7 @@
  * prose. That is what a floating button does; it is kept small and slightly
  * transparent until hover so it reads as chrome rather than content.
  */
-#sidenote-bubble {
+#thinkpad-bubble {
   position: fixed;
   left: 20px;
   bottom: 100px;
@@ -32,13 +32,13 @@
   transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
 }
 
-#sidenote-bubble:hover {
+#thinkpad-bubble:hover {
   opacity: 1;
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.34);
 }
 
-#sidenote-bubble:focus-visible {
+#thinkpad-bubble:focus-visible {
   outline: 2px solid #8fd3ae;
   outline-offset: 3px;
   opacity: 1;
@@ -46,7 +46,7 @@
 
 /* Narrow windows: LeetCode stacks the panes and the action bar grows. */
 @media (max-height: 700px) {
-  #sidenote-bubble {
+  #thinkpad-bubble {
     bottom: 76px;
   }
 }
