@@ -304,7 +304,7 @@ export type MsgOf<T extends MsgType> = Extract<Msg, { type: T }>;
  * ------------------------------------------------------------------ */
 
 /** Track C sets this at CP1. Everything else reads it from here. */
-export const COACH_ENDPOINT = 'https://sidenote-coach.vercel.app/api/coach';
+export const COACH_ENDPOINT = 'https://ctp-rjmd.vercel.app/api/coach';
 
 /** Below this, the coach asks a clarifying question instead of naming a bug. */
 export const CONFIDENCE_FLOOR = 0.55;

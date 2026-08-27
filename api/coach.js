@@ -22457,6 +22457,25 @@ async function generateJson(input, schema) {
   }
 }
 
+// server/lib/guard.ts
+var MEMORY = /\b(map|maps|dict|dictionary|hash(?:map|table)?|set|seen|store[ds]?|storing|remember(?:ing|ed)?|lookup|look ?up|table|cache|index(?:es|ed)?|previous(?:ly)?)\b/i;
+var EXHAUSTIVE = /\b(every|all|each)\b[^.]{0,40}\b(pair|pairs|combination|combinations|possibilit\w+)\b|\bnested loops?\b|\btwo loops\b|\bloop (?:through|over)[^.]{0,30}\bagain\b|\bcompare\b[^.]{0,40}\b(?:with|against)\b[^.]{0,20}\bothers?\b|\bcheck them all\b|\bbrute[- ]force\b/i;
+function guardDiagnosis(diagnosed, attemptText, code) {
+  if (diagnosed !== "NONE") return { misconceptionId: diagnosed, overridden: false };
+  const evidence = `${attemptText}
+${code}`;
+  if (attemptText.trim().length < 20) return { misconceptionId: "NONE", overridden: false };
+  if (MEMORY.test(evidence)) return { misconceptionId: "NONE", overridden: false };
+  if (EXHAUSTIVE.test(evidence)) {
+    return {
+      misconceptionId: "TS_BRUTE_FORCE_ONLY",
+      overridden: true,
+      reason: "NONE claimed, but nothing is remembered and the search is exhaustive"
+    };
+  }
+  return { misconceptionId: "NONE", overridden: false };
+}
+
 // server/lib/prompt.ts
 var TAXONOMY = MISCONCEPTION_IDS.map((id) => `  ${id} \u2014 ${MISCONCEPTION_LABELS[id]}`).join("\n");
 var DIAGNOSIS_SYSTEM = `You are diagnosing a beginner's understanding of the Two Sum problem.
@@ -22473,7 +22492,16 @@ Rules:
 - If two apply, pick the one that is furthest upstream \u2014 the one that, once fixed,
   makes the other disappear.
 - If nothing fits, or you are guessing, return NONE with a low confidence rather than
-  inventing a misconception. A wrong diagnosis is worse than no diagnosis.`;
+  inventing a misconception. A wrong diagnosis is worse than no diagnosis.
+
+NONE is the most dangerous label to get wrong, because it tells the learner their
+approach is sound and to go write it. Two rules protect it:
+- Describing a check of every pair or every combination is TS_BRUTE_FORCE_ONLY, in
+  ANY wording \u2014 "all combinations", "compare each one with the others", "try every
+  possibility", "check them all". It is never NONE, however confident or tidy it sounds.
+- NONE requires that they describe REMEMBERING what they have already seen and looking
+  the partner up. If nothing in their description keeps track of past elements, it is
+  not NONE.`;
 var DIAGNOSIS_SCHEMA = {
   type: "object",
   properties: {
@@ -22689,28 +22717,91 @@ function buildTwoSumVisual(values) {
 }
 
 // visuals/videos.ts
-var twoSumVideo = (misconceptionId, why) => ({
-  misconceptionId,
-  title: "Two Sum \u2014 hash map walkthrough",
-  channel: "NeetCode",
-  youtubeId: "KLlXCFG5TnA",
-  durationSec: 345,
-  startSec: 78,
-  thumbnailUrl: "https://i.ytimg.com/vi/KLlXCFG5TnA/hqdefault.jpg",
-  url: "https://www.youtube.com/watch?v=KLlXCFG5TnA&t=78s",
-  why
-});
+var VIDEO_WHY = {
+  TS_BRUTE_FORCE_ONLY: "Watch the moment they count how many pairs the nested-loop version actually checks. Seeing the number is what makes the second approach feel necessary rather than clever.",
+  TS_COMPLEMENT_CONFUSION: "They spend a full minute on one idea: stop looking for a pair, start looking for one specific number you can name before you search.",
+  TS_MAP_DIRECTION_FLIPPED: "This is the part where they decide what to key the table on, and say out loud which of the two you have and which you need. That is exactly your question.",
+  TS_INSERT_BEFORE_CHECK: "Watch the order of the two lines inside the loop. They check first and store second, and explain what breaks if you swap them \u2014 which is the bug you have.",
+  TS_RETURNS_VALUES_NOT_INDICES: "Short and specific: they read the problem statement back and point at the word that decides what you return.",
+  TS_OFF_BY_ONE_INNER_LOOP: "They trace the loop bounds by hand and show the exact moment an element gets paired with itself. Same trace you just did on paper.",
+  NONE: ""
+};
+function buildVideo(id, parts) {
+  return {
+    misconceptionId: id,
+    title: parts.title,
+    channel: parts.channel,
+    youtubeId: parts.youtubeId,
+    durationSec: parts.durationSec,
+    startSec: parts.startSec,
+    thumbnailUrl: `https://i.ytimg.com/vi/${parts.youtubeId}/hqdefault.jpg`,
+    url: `https://www.youtube.com/watch?v=${parts.youtubeId}&t=${parts.startSec}s`,
+    why: parts.why ?? VIDEO_WHY[id]
+  };
+}
 var VIDEO_MAP = {
-  TS_BRUTE_FORCE_ONLY: twoSumVideo("TS_BRUTE_FORCE_ONLY", "Watch the moment a second scan becomes one lookup."),
-  TS_COMPLEMENT_CONFUSION: twoSumVideo("TS_COMPLEMENT_CONFUSION", "This pauses on the target-minus-current-number idea."),
-  TS_MAP_DIRECTION_FLIPPED: twoSumVideo("TS_MAP_DIRECTION_FLIPPED", "Notice what becomes the key and what becomes the stored value."),
-  TS_INSERT_BEFORE_CHECK: twoSumVideo("TS_INSERT_BEFORE_CHECK", "The walkthrough makes the check-before-store order visible."),
-  TS_RETURNS_VALUES_NOT_INDICES: twoSumVideo("TS_RETURNS_VALUES_NOT_INDICES", "This connects the lookup result back to the required indices."),
-  TS_OFF_BY_ONE_INNER_LOOP: twoSumVideo("TS_OFF_BY_ONE_INNER_LOOP", "Use the trace to inspect which positions are actually compared.")
+  TS_BRUTE_FORCE_ONLY: buildVideo("TS_BRUTE_FORCE_ONLY", {
+    youtubeId: "KLlXCFG5TnA",
+    title: "Two Sum \u2014 hash map walkthrough",
+    channel: "NeetCode",
+    durationSec: 345,
+    startSec: 78
+  }),
+  TS_COMPLEMENT_CONFUSION: buildVideo("TS_COMPLEMENT_CONFUSION", {
+    youtubeId: "KLlXCFG5TnA",
+    title: "Two Sum \u2014 hash map walkthrough",
+    channel: "NeetCode",
+    durationSec: 345,
+    startSec: 78
+  }),
+  TS_MAP_DIRECTION_FLIPPED: buildVideo("TS_MAP_DIRECTION_FLIPPED", {
+    youtubeId: "KLlXCFG5TnA",
+    title: "Two Sum \u2014 hash map walkthrough",
+    channel: "NeetCode",
+    durationSec: 345,
+    startSec: 78
+  }),
+  TS_INSERT_BEFORE_CHECK: buildVideo("TS_INSERT_BEFORE_CHECK", {
+    youtubeId: "KLlXCFG5TnA",
+    title: "Two Sum \u2014 hash map walkthrough",
+    channel: "NeetCode",
+    durationSec: 345,
+    startSec: 78
+  }),
+  TS_RETURNS_VALUES_NOT_INDICES: buildVideo("TS_RETURNS_VALUES_NOT_INDICES", {
+    youtubeId: "KLlXCFG5TnA",
+    title: "Two Sum \u2014 hash map walkthrough",
+    channel: "NeetCode",
+    durationSec: 345,
+    startSec: 78
+  }),
+  TS_OFF_BY_ONE_INNER_LOOP: buildVideo("TS_OFF_BY_ONE_INNER_LOOP", {
+    youtubeId: "KLlXCFG5TnA",
+    title: "Two Sum \u2014 hash map walkthrough",
+    channel: "NeetCode",
+    durationSec: 345,
+    startSec: 78
+  })
+};
+function videoFor(id) {
+  const v = VIDEO_MAP[id];
+  if (!v || !v.youtubeId || !v.title) return null;
+  return v;
+}
+
+// visuals/analogies.ts
+var ANALOGIES = {
+  TS_BRUTE_FORCE_ONLY: "Imagine you're at a party trying to find two people whose ages add up to 60. You could walk up to every possible pair and ask \u2014 but with a hundred guests that's thousands of conversations. Or, as you meet each person, you could just remember their age and who they were. Then each new person you meet, you only have to ask yourself one question. What would that question be?",
+  TS_COMPLEMENT_CONFUSION: "You're at a coat check with a ticket stub numbered 34. You don't wander the racks comparing every coat against every other coat. You look at your stub, work out exactly what you're looking for, and ask for that one thing. Right now your code is comparing things to each other. What's the one specific thing you could work out first, before you go looking?",
+  TS_MAP_DIRECTION_FLIPPED: "A phone book is sorted by name, because when you sit down with it you already know the name and you want the number. Nobody prints one sorted by number \u2014 it would be useless for the thing you actually came to do. Look at the moment you go searching: what do you already have in your hand, and what are you trying to get back?",
+  TS_INSERT_BEFORE_CHECK: "You walk into a room looking for someone the same height as you. If you sign the guest book first and then read the guest book, you find your own name and declare success \u2014 you have matched yourself with yourself. Read the room first, then sign. Where in your code does the signing happen relative to the reading?",
+  TS_RETURNS_VALUES_NOT_INDICES: "A librarian asks where the two books you borrowed are shelved. Telling them the titles is a perfectly true answer to a question nobody asked \u2014 they wanted the shelf numbers so they could go and get them. Read the last line of what you were asked for again. Is it asking what, or where?",
+  TS_OFF_BY_ONE_INNER_LOOP: "You're pairing up socks from a basket. You pick one up in your left hand, then reach back into the basket with your right \u2014 but if you reach into the same spot, you pull out the very sock you're already holding and declare it a match. Your two hands are reaching into the same place. Where does the second hand need to start?",
+  NONE: "You've got it \u2014 you're keeping a running memory as you go instead of searching the whole room every time. Go write it."
 };
 
 // server/api/coach.ts
-var config = { runtime: "edge" };
+var config = { runtime: "nodejs", maxDuration: 30 };
 var CORS = {
   "content-type": "application/json",
   "access-control-allow-origin": "*",
@@ -22718,7 +22809,7 @@ var CORS = {
   "access-control-allow-methods": "POST, OPTIONS"
 };
 var json2 = (body) => new Response(JSON.stringify(body), { status: 200, headers: CORS });
-async function handler(req) {
+async function coach(req) {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   let payload;
   try {
@@ -22734,7 +22825,9 @@ async function handler(req) {
     buildDiagnosisInput(problem, attempt),
     DIAGNOSIS_SCHEMA
   );
-  const misconceptionId = diag.value && diag.value.confidence >= CONFIDENCE_FLOOR ? diag.value.misconceptionId : "NONE";
+  const proposed = diag.value && diag.value.confidence >= CONFIDENCE_FLOOR ? diag.value.misconceptionId : "NONE";
+  const guarded = guardDiagnosis(proposed, attempt.text, problem.code);
+  const misconceptionId = guarded.misconceptionId;
   const projected = {
     ...profile,
     misconceptionCounts: {
@@ -22742,7 +22835,15 @@ async function handler(req) {
       ...misconceptionId !== "NONE" ? { [misconceptionId]: countFor(profile, misconceptionId) + 1 } : {}
     }
   };
-  const intervention = decideIntervention(projected, misconceptionId);
+  let intervention = decideIntervention(projected, misconceptionId);
+  if (intervention.modality === "video" && !videoFor(misconceptionId)) {
+    intervention = {
+      ...intervention,
+      modality: "question",
+      exhausted: true,
+      reason: `${intervention.reason} -> no curated video, falling back to a fresh question`
+    };
+  }
   const wasStuck = profile.lastIntervention !== null;
   const corrected = wasStuck && misconceptionId === "NONE";
   const written = await generateJson(
@@ -22756,7 +22857,9 @@ async function handler(req) {
   const rejection = candidate ? rejectionFor(candidate) : { reason: written.error ?? "no output" };
   if (!candidate || rejection) {
     const fb = fallbackFor(misconceptionId, {
-      hintLevel: intervention.hintLevel,
+      // NONE is praise, not a hint. Forcing level 1 onto it produces an "L1"
+      // that does not end in a question, which our own contract forbids.
+      hintLevel: misconceptionId === "NONE" ? null : intervention.hintLevel,
       modality: "question",
       offeredActions: intervention.offeredActions,
       note: rejection?.reason
@@ -22788,7 +22891,6 @@ function assemble(payload, misconceptionId, intervention, written, corrected, me
   };
   delta.summary = summariseProfile(applyProfileDelta(profile, delta, Date.now()));
   const values = problem.sampleInput ?? { nums: [2, 7, 11, 15], target: 9 };
-  const video = VIDEO_MAP[misconceptionId] ?? null;
   return {
     misconceptionId,
     confidence: intervention.exhausted ? CONFIDENCE_FLOOR : 0.9,
@@ -22797,9 +22899,11 @@ function assemble(payload, misconceptionId, intervention, written, corrected, me
     modality: intervention.modality,
     offeredActions: intervention.offeredActions,
     blockedActions: intervention.blockedActions,
-    analogy: intervention.modality === "analogy" ? written.analogy || null : null,
+    // If the model's analogy comes back empty, use D6's hand-written one rather
+    // than delivering an "analogy" turn with no analogy in it.
+    analogy: intervention.modality === "analogy" ? written.analogy || ANALOGIES[misconceptionId] || null : null,
     visual: intervention.modality === "visual" ? buildTwoSumVisual(values) : null,
-    video: intervention.modality === "video" ? video : null,
+    video: intervention.modality === "video" ? videoFor(misconceptionId) : null,
     comprehensionQuestion: intervention.askComprehension && written.comprehensionQuestion ? {
       id: `${misconceptionId}-${intervention.hintLevel ?? "x"}`,
       prompt: written.comprehensionQuestion,
@@ -22810,7 +22914,41 @@ function assemble(payload, misconceptionId, intervention, written, corrected, me
     meta: { fallbackUsed: false, model: meta.model, latencyMs: meta.latencyMs }
   };
 }
+function isNodeResponse(value) {
+  return typeof value?.setHeader === "function";
+}
+async function readBody(req) {
+  if (typeof req.body === "string") return req.body;
+  if (req.body && typeof req.body === "object") return JSON.stringify(req.body);
+  if (typeof req.on !== "function") return "";
+  return new Promise((resolve) => {
+    let raw = "";
+    req.setEncoding?.("utf8");
+    req.on("data", (chunk) => {
+      raw += String(chunk);
+    });
+    req.on("end", () => resolve(raw));
+  });
+}
+async function handler(a, b) {
+  if (!isNodeResponse(b)) return coach(a);
+  const req = a;
+  const headers = new Headers();
+  for (const [k, v] of Object.entries(req.headers)) {
+    if (typeof v === "string") headers.set(k, v);
+    else if (Array.isArray(v)) headers.set(k, v.join(", "));
+  }
+  const method = req.method ?? "GET";
+  const body = method === "GET" || method === "HEAD" ? void 0 : await readBody(req);
+  const response = await coach(
+    new Request(`https://vercel.local${req.url ?? "/api/coach"}`, { method, headers, body })
+  );
+  b.statusCode = response.status;
+  response.headers.forEach((value, key) => b.setHeader(key, value));
+  b.end(await response.text());
+}
 export {
+  coach,
   config,
   handler as default
 };

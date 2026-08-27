@@ -10,6 +10,7 @@ import { PasteFallback } from './components/PasteFallback';
 import { VisualStepper } from '../visuals/Stepper';
 import { DesignPreview } from './DesignPreview';
 import { PracticePicker, type PracticeLevel } from './components/PracticePicker';
+import { PanelMenu, type PanelPage } from './components/PanelMenu';
 
 export function App() {
   if (new URLSearchParams(window.location.search).has('design')) {
@@ -19,6 +20,7 @@ export function App() {
   const coach = useCoach();
   const [showHistory, setShowHistory] = useState(false);
   const [practiceLevel, setPracticeLevel] = useState<PracticeLevel>('Easy');
+  const [activePage, setActivePage] = useState<PanelPage>('coach');
 
   if (coach.status === 'loading') {
     return <div className="sn-shell sn-muted">Getting my bearings…</div>;
@@ -34,12 +36,22 @@ export function App() {
 
   const r = coach.latest;
 
+  if (activePage !== 'coach') {
+    return (
+      <div className="sn-shell">
+        <PanelMenu activePage={activePage} onNavigate={setActivePage} />
+        {activePage === 'practice' && <PracticePicker value={practiceLevel} onChange={setPracticeLevel} />}
+        {activePage === 'progress' && <section className="sn-subpage"><span className="sn-eyebrow">Learning profile</span><h1>Your progress</h1><p>Your patterns become clearer one thoughtful attempt at a time.</p><ProfileCard profile={coach.profile} /></section>}
+        {activePage === 'settings' && <section className="sn-subpage"><span className="sn-eyebrow">Preferences</span><h1>Settings</h1><p>Your name and microphone permission live on this device for now.</p></section>}
+      </div>
+    );
+  }
+
   return (
     <div className="sn-shell">
-      <PracticePicker value={practiceLevel} onChange={setPracticeLevel} />
-      <header className="sn-header">
-        <span className="sn-mark">Sidenote</span>
-        <span className="sn-problem">{coach.problem?.title ?? 'No problem detected'}</span>
+      <PanelMenu activePage={activePage} onNavigate={setActivePage} />
+      <header className="sn-header sn-problem-header">
+        <span className="sn-problem"><i className="sn-ai-dot" /> Gemini AI · {coach.problem?.title ?? 'No problem detected'}</span>
       </header>
 
       {r?.learningGoal && (

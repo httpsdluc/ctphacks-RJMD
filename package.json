@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test --experimental-strip-types server/lib/*.test.ts",
     "dry-run": "node --experimental-strip-types server/dryrun.ts",
-    "smoke": "node --experimental-strip-types --env-file=.env server/smoke.ts"
+    "smoke": "node --experimental-strip-types --env-file=.env server/smoke.ts",
+    "eval": "node --experimental-strip-types --env-file=.env server/eval.ts"
   },
   "dependencies": {
     "@google/genai": "^2.19.0",

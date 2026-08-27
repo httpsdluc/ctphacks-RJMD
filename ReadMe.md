@@ -72,9 +72,26 @@ npm test
 npm run dry-run
 ```
 
+```bash
+npm run eval
+```
+
 `dry-run` walks six attempts on the same misconception with no API key and no
 network, and prints what the machine chose each time. Use it to rehearse the
 escalation beat before demoing it.
+
+`eval` runs 10 hand-written explanations through the real model and scores the
+diagnosis. Currently 10/10. Add `-- --live` to run it against the deployed
+endpoint instead of the local handler.
+
+### Rate limits
+
+The Gemini free tier allows **15 requests per minute**, and every learner turn
+costs two (diagnose, then coach). That is roughly 7 turns a minute across
+everyone using it at once. On a 429 the coach falls back to the hand-written
+responses in `server/lib/fallbacks.ts` — it stays in character and the demo
+keeps working, which is the entire reason those are written as product. Do not
+run `npm run eval` while someone is demoing.
 
 ### Deploy
 
@@ -88,6 +105,17 @@ or `shared/`, or the deployed coach will be stale.**
 Set `GEMINI_API_KEY` and `COACH_MODEL` in the Vercel dashboard — never in the
 repo. Then put the deployed URL into `COACH_ENDPOINT` in `shared/contracts.ts`
 and the matching origin in `extension/manifest.json` under `host_permissions`.
+
+## Track D status
+
+`visuals/analogies.ts` is done — six analogies, with a test that fails if any of
+them reaches for the vocabulary of the thing it explains.
+
+`visuals/videos.ts` is **half done**. The `why` lines are written; the video IDs
+and timestamps are not, and cannot be — someone has to watch the clips and scrub
+to the right moment. Instructions are at the top of the file. An entry with an
+empty `youtubeId` counts as absent, and the coach routes around the video rung
+rather than rendering a dead player, so shipping it half-filled is safe.
 
 ## Not done yet
 

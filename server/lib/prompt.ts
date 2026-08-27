@@ -30,7 +30,16 @@ Rules:
 - If two apply, pick the one that is furthest upstream — the one that, once fixed,
   makes the other disappear.
 - If nothing fits, or you are guessing, return NONE with a low confidence rather than
-  inventing a misconception. A wrong diagnosis is worse than no diagnosis.`;
+  inventing a misconception. A wrong diagnosis is worse than no diagnosis.
+
+NONE is the most dangerous label to get wrong, because it tells the learner their
+approach is sound and to go write it. Two rules protect it:
+- Describing a check of every pair or every combination is TS_BRUTE_FORCE_ONLY, in
+  ANY wording — "all combinations", "compare each one with the others", "try every
+  possibility", "check them all". It is never NONE, however confident or tidy it sounds.
+- NONE requires that they describe REMEMBERING what they have already seen and looking
+  the partner up. If nothing in their description keeps track of past elements, it is
+  not NONE.`;
 
 export const DIAGNOSIS_SCHEMA = {
   type: 'object',

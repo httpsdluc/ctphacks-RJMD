@@ -11,11 +11,17 @@
  * repo, not by trusting the build to produce them. Run `npm run build` before
  * pushing any change under server/ or shared/.
  *
- * EVERYTHING is bundled, including @google/genai. Edge functions have no
- * node_modules at runtime, so an external import silently fails to resolve and
- * the function hangs on boot — no error, no response, just a timeout. The full
- * bundle is ~73 KB gzipped against a 1 MB limit, so there is no reason to risk
- * it.
+ * EVERYTHING is bundled, including @google/genai, so the function has no
+ * runtime resolution to do at all.
+ *
+ * Two constraints pin this configuration, and both are easy to trip over:
+ *   - runtime is nodejs, not edge. The edge sandbox hung on boot with this
+ *     bundle — even OPTIONS timed out, and OPTIONS returns 204 before it
+ *     touches Gemini.
+ *   - the SDK is imported from @google/genai/web, and platform is 'browser'.
+ *     The Node build of the SDK does a dynamic require("child_process") for
+ *     gcloud auth, which esbuild cannot bundle. The web build has no such call
+ *     and runs perfectly well under Node.
  */
 import { build } from 'esbuild';
 import { mkdir } from 'node:fs/promises';
