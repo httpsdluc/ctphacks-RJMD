@@ -37,12 +37,6 @@ import type {
   SkillState,
 } from '../../shared/contracts.ts';
 
-/**
- * Node runtime, not edge. The edge sandbox hung on boot with this bundle —
- * OPTIONS timed out too, and OPTIONS returns 204 before touching Gemini. The
- * same artifact runs correctly under Node locally, so production now matches
- * the environment we can actually verify.
- */
 export const config = { runtime: 'nodejs', maxDuration: 30 };
 
 const CORS = {
@@ -67,7 +61,7 @@ interface Written {
   expectedIdea: string;
 }
 
-export default async function handler(req: Request): Promise<Response> {
+export async function coach(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
 
   let payload: CoachRequest;
@@ -197,4 +191,75 @@ function assemble(
     learningGoal: LEARNING_GOALS[misconceptionId],
     meta: { fallbackUsed: false, model: meta.model, latencyMs: meta.latencyMs },
   };
+}
+
+/* ------------------------------------------------------------------ *
+ * Vercel entry — signature-agnostic.
+ *
+ * Vercel invokes a Node function as handler(req, res) with Node's own
+ * IncomingMessage/ServerResponse, but invokes edge (and newer Node web
+ * handlers) as handler(request) returning a Response. Returning a Response
+ * from the (req, res) form does nothing: nobody ever calls res.end(), so the
+ * request hangs until it times out — for every method, including OPTIONS.
+ *
+ * Detecting which form we are in costs one typeof check and removes an entire
+ * class of deploy failure, so we do that rather than guess.
+ * ------------------------------------------------------------------ */
+
+interface NodeResponseLike {
+  statusCode: number;
+  setHeader(name: string, value: string): void;
+  end(body?: string): void;
+}
+
+interface NodeRequestLike {
+  method?: string;
+  url?: string;
+  headers: Record<string, string | string[] | undefined>;
+  body?: unknown;
+  setEncoding?(enc: string): void;
+  on?(event: string, cb: (chunk?: unknown) => void): void;
+}
+
+function isNodeResponse(value: unknown): value is NodeResponseLike {
+  return typeof (value as NodeResponseLike | undefined)?.setHeader === 'function';
+}
+
+async function readBody(req: NodeRequestLike): Promise<string> {
+  // Vercel usually parses JSON bodies for us.
+  if (typeof req.body === 'string') return req.body;
+  if (req.body && typeof req.body === 'object') return JSON.stringify(req.body);
+  if (typeof req.on !== 'function') return '';
+  return new Promise<string>((resolve) => {
+    let raw = '';
+    req.setEncoding?.('utf8');
+    req.on!('data', (chunk) => {
+      raw += String(chunk);
+    });
+    req.on!('end', () => resolve(raw));
+  });
+}
+
+export default async function handler(
+  a: Request | NodeRequestLike,
+  b?: unknown,
+): Promise<Response | void> {
+  if (!isNodeResponse(b)) return coach(a as Request);
+
+  const req = a as NodeRequestLike;
+  const headers = new Headers();
+  for (const [k, v] of Object.entries(req.headers)) {
+    if (typeof v === 'string') headers.set(k, v);
+    else if (Array.isArray(v)) headers.set(k, v.join(', '));
+  }
+
+  const method = req.method ?? 'GET';
+  const body = method === 'GET' || method === 'HEAD' ? undefined : await readBody(req);
+  const response = await coach(
+    new Request(`https://vercel.local${req.url ?? '/api/coach'}`, { method, headers, body }),
+  );
+
+  b.statusCode = response.status;
+  response.headers.forEach((value, key) => b.setHeader(key, value));
+  b.end(await response.text());
 }

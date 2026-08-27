@@ -8,7 +8,7 @@
  * it isolates "is the model working" from "is Vercel working".
  */
 
-import handler from './api/coach.ts';
+import { coach as handler } from './api/coach.ts';
 import { createProfile } from '../shared/profile.ts';
 import type { CoachRequest } from '../shared/contracts.ts';
 

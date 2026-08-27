@@ -22700,7 +22700,7 @@ var CORS = {
   "access-control-allow-methods": "POST, OPTIONS"
 };
 var json2 = (body) => new Response(JSON.stringify(body), { status: 200, headers: CORS });
-async function handler(req) {
+async function coach(req) {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   let payload;
   try {
@@ -22792,7 +22792,41 @@ function assemble(payload, misconceptionId, intervention, written, corrected, me
     meta: { fallbackUsed: false, model: meta.model, latencyMs: meta.latencyMs }
   };
 }
+function isNodeResponse(value) {
+  return typeof value?.setHeader === "function";
+}
+async function readBody(req) {
+  if (typeof req.body === "string") return req.body;
+  if (req.body && typeof req.body === "object") return JSON.stringify(req.body);
+  if (typeof req.on !== "function") return "";
+  return new Promise((resolve) => {
+    let raw = "";
+    req.setEncoding?.("utf8");
+    req.on("data", (chunk) => {
+      raw += String(chunk);
+    });
+    req.on("end", () => resolve(raw));
+  });
+}
+async function handler(a, b) {
+  if (!isNodeResponse(b)) return coach(a);
+  const req = a;
+  const headers = new Headers();
+  for (const [k, v] of Object.entries(req.headers)) {
+    if (typeof v === "string") headers.set(k, v);
+    else if (Array.isArray(v)) headers.set(k, v.join(", "));
+  }
+  const method = req.method ?? "GET";
+  const body = method === "GET" || method === "HEAD" ? void 0 : await readBody(req);
+  const response = await coach(
+    new Request(`https://vercel.local${req.url ?? "/api/coach"}`, { method, headers, body })
+  );
+  b.statusCode = response.status;
+  response.headers.forEach((value, key) => b.setHeader(key, value));
+  b.end(await response.text());
+}
 export {
+  coach,
   config,
   handler as default
 };
