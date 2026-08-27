@@ -22718,6 +22718,22 @@ function buildTwoSumVisual(values) {
 
 // visuals/videos.ts
 var VIDEO_MAP = {};
+function videoFor(id) {
+  const v = VIDEO_MAP[id];
+  if (!v || !v.youtubeId || !v.title) return null;
+  return v;
+}
+
+// visuals/analogies.ts
+var ANALOGIES = {
+  TS_BRUTE_FORCE_ONLY: "Imagine you're at a party trying to find two people whose ages add up to 60. You could walk up to every possible pair and ask \u2014 but with a hundred guests that's thousands of conversations. Or, as you meet each person, you could just remember their age and who they were. Then each new person you meet, you only have to ask yourself one question. What would that question be?",
+  TS_COMPLEMENT_CONFUSION: "You're at a coat check with a ticket stub numbered 34. You don't wander the racks comparing every coat against every other coat. You look at your stub, work out exactly what you're looking for, and ask for that one thing. Right now your code is comparing things to each other. What's the one specific thing you could work out first, before you go looking?",
+  TS_MAP_DIRECTION_FLIPPED: "A phone book is sorted by name, because when you sit down with it you already know the name and you want the number. Nobody prints one sorted by number \u2014 it would be useless for the thing you actually came to do. Look at the moment you go searching: what do you already have in your hand, and what are you trying to get back?",
+  TS_INSERT_BEFORE_CHECK: "You walk into a room looking for someone the same height as you. If you sign the guest book first and then read the guest book, you find your own name and declare success \u2014 you have matched yourself with yourself. Read the room first, then sign. Where in your code does the signing happen relative to the reading?",
+  TS_RETURNS_VALUES_NOT_INDICES: "A librarian asks where the two books you borrowed are shelved. Telling them the titles is a perfectly true answer to a question nobody asked \u2014 they wanted the shelf numbers so they could go and get them. Read the last line of what you were asked for again. Is it asking what, or where?",
+  TS_OFF_BY_ONE_INNER_LOOP: "You're pairing up socks from a basket. You pick one up in your left hand, then reach back into the basket with your right \u2014 but if you reach into the same spot, you pull out the very sock you're already holding and declare it a match. Your two hands are reaching into the same place. Where does the second hand need to start?",
+  NONE: "You've got it \u2014 you're keeping a running memory as you go instead of searching the whole room every time. Go write it."
+};
 
 // server/api/coach.ts
 var config = { runtime: "nodejs", maxDuration: 30 };
@@ -22754,7 +22770,15 @@ async function coach(req) {
       ...misconceptionId !== "NONE" ? { [misconceptionId]: countFor(profile, misconceptionId) + 1 } : {}
     }
   };
-  const intervention = decideIntervention(projected, misconceptionId);
+  let intervention = decideIntervention(projected, misconceptionId);
+  if (intervention.modality === "video" && !videoFor(misconceptionId)) {
+    intervention = {
+      ...intervention,
+      modality: "question",
+      exhausted: true,
+      reason: `${intervention.reason} -> no curated video, falling back to a fresh question`
+    };
+  }
   const wasStuck = profile.lastIntervention !== null;
   const corrected = wasStuck && misconceptionId === "NONE";
   const written = await generateJson(
@@ -22802,7 +22826,6 @@ function assemble(payload, misconceptionId, intervention, written, corrected, me
   };
   delta.summary = summariseProfile(applyProfileDelta(profile, delta, Date.now()));
   const values = problem.sampleInput ?? { nums: [2, 7, 11, 15], target: 9 };
-  const video = VIDEO_MAP[misconceptionId] ?? null;
   return {
     misconceptionId,
     confidence: intervention.exhausted ? CONFIDENCE_FLOOR : 0.9,
@@ -22811,9 +22834,11 @@ function assemble(payload, misconceptionId, intervention, written, corrected, me
     modality: intervention.modality,
     offeredActions: intervention.offeredActions,
     blockedActions: intervention.blockedActions,
-    analogy: intervention.modality === "analogy" ? written.analogy || null : null,
+    // If the model's analogy comes back empty, use D6's hand-written one rather
+    // than delivering an "analogy" turn with no analogy in it.
+    analogy: intervention.modality === "analogy" ? written.analogy || ANALOGIES[misconceptionId] || null : null,
     visual: intervention.modality === "visual" ? buildTwoSumVisual(values) : null,
-    video: intervention.modality === "video" ? video : null,
+    video: intervention.modality === "video" ? videoFor(misconceptionId) : null,
     comprehensionQuestion: intervention.askComprehension && written.comprehensionQuestion ? {
       id: `${misconceptionId}-${intervention.hintLevel ?? "x"}`,
       prompt: written.comprehensionQuestion,

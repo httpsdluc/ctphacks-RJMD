@@ -106,6 +106,17 @@ Set `GEMINI_API_KEY` and `COACH_MODEL` in the Vercel dashboard — never in the
 repo. Then put the deployed URL into `COACH_ENDPOINT` in `shared/contracts.ts`
 and the matching origin in `extension/manifest.json` under `host_permissions`.
 
+## Track D status
+
+`visuals/analogies.ts` is done — six analogies, with a test that fails if any of
+them reaches for the vocabulary of the thing it explains.
+
+`visuals/videos.ts` is **half done**. The `why` lines are written; the video IDs
+and timestamps are not, and cannot be — someone has to watch the clips and scrub
+to the right moment. Instructions are at the top of the file. An entry with an
+empty `youtubeId` counts as absent, and the coach routes around the video rung
+rather than rendering a dead player, so shipping it half-filled is safe.
+
 ## Not done yet
 
 Every stub is tagged `TODO(<task id>)` matching the task breakdown. Grep for

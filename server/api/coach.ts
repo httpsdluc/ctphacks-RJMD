@@ -28,7 +28,8 @@ import {
 import { SKILL_FOR } from '../lib/skills.ts';
 import { rejectionFor } from '../lib/validate.ts';
 import { buildTwoSumVisual } from '../lib/visualSpec.ts';
-import { VIDEO_MAP } from '../../visuals/videos.ts';
+import { videoFor } from '../../visuals/videos.ts';
+import { ANALOGIES } from '../../visuals/analogies.ts';
 import type {
   CoachRequest,
   CoachResponse,
@@ -102,7 +103,19 @@ export async function coach(req: Request): Promise<Response> {
         : {}),
     },
   };
-  const intervention = decideIntervention(projected, misconceptionId);
+  let intervention = decideIntervention(projected, misconceptionId);
+
+  // The video rung is only real if Track D has actually curated one. Promising
+  // a video and rendering an empty player is worse than admitting we are out of
+  // angles, so route around it rather than escalating into nothing.
+  if (intervention.modality === 'video' && !videoFor(misconceptionId)) {
+    intervention = {
+      ...intervention,
+      modality: 'question',
+      exhausted: true,
+      reason: `${intervention.reason} -> no curated video, falling back to a fresh question`,
+    };
+  }
 
   // C8: they corrected if they were stuck on something and no longer are.
   const wasStuck = profile.lastIntervention !== null;
@@ -174,7 +187,6 @@ function assemble(
   delta.summary = summariseProfile(applyProfileDelta(profile, delta, Date.now()));
 
   const values = problem.sampleInput ?? { nums: [2, 7, 11, 15], target: 9 };
-  const video = VIDEO_MAP[misconceptionId] ?? null;
 
   return {
     misconceptionId,
@@ -184,9 +196,14 @@ function assemble(
     modality: intervention.modality,
     offeredActions: intervention.offeredActions,
     blockedActions: intervention.blockedActions,
-    analogy: intervention.modality === 'analogy' ? written.analogy || null : null,
+    // If the model's analogy comes back empty, use D6's hand-written one rather
+    // than delivering an "analogy" turn with no analogy in it.
+    analogy:
+      intervention.modality === 'analogy'
+        ? written.analogy || ANALOGIES[misconceptionId] || null
+        : null,
     visual: intervention.modality === 'visual' ? buildTwoSumVisual(values) : null,
-    video: intervention.modality === 'video' ? video : null,
+    video: intervention.modality === 'video' ? videoFor(misconceptionId) : null,
     comprehensionQuestion:
       intervention.askComprehension && written.comprehensionQuestion
         ? {
