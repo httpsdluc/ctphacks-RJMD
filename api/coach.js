@@ -22742,42 +22742,42 @@ function buildVideo(id, parts) {
 var VIDEO_MAP = {
   TS_BRUTE_FORCE_ONLY: buildVideo("TS_BRUTE_FORCE_ONLY", {
     youtubeId: "KLlXCFG5TnA",
-    title: "Two Sum \u2014 hash map walkthrough",
+    title: "Two Sum - Leetcode 1 - HashMap - Python",
     channel: "NeetCode",
     durationSec: 345,
     startSec: 78
   }),
   TS_COMPLEMENT_CONFUSION: buildVideo("TS_COMPLEMENT_CONFUSION", {
     youtubeId: "KLlXCFG5TnA",
-    title: "Two Sum \u2014 hash map walkthrough",
+    title: "Two Sum - Leetcode 1 - HashMap - Python",
     channel: "NeetCode",
     durationSec: 345,
     startSec: 78
   }),
   TS_MAP_DIRECTION_FLIPPED: buildVideo("TS_MAP_DIRECTION_FLIPPED", {
     youtubeId: "KLlXCFG5TnA",
-    title: "Two Sum \u2014 hash map walkthrough",
+    title: "Two Sum - Leetcode 1 - HashMap - Python",
     channel: "NeetCode",
     durationSec: 345,
     startSec: 78
   }),
   TS_INSERT_BEFORE_CHECK: buildVideo("TS_INSERT_BEFORE_CHECK", {
     youtubeId: "KLlXCFG5TnA",
-    title: "Two Sum \u2014 hash map walkthrough",
+    title: "Two Sum - Leetcode 1 - HashMap - Python",
     channel: "NeetCode",
     durationSec: 345,
     startSec: 78
   }),
   TS_RETURNS_VALUES_NOT_INDICES: buildVideo("TS_RETURNS_VALUES_NOT_INDICES", {
     youtubeId: "KLlXCFG5TnA",
-    title: "Two Sum \u2014 hash map walkthrough",
+    title: "Two Sum - Leetcode 1 - HashMap - Python",
     channel: "NeetCode",
     durationSec: 345,
     startSec: 78
   }),
   TS_OFF_BY_ONE_INNER_LOOP: buildVideo("TS_OFF_BY_ONE_INNER_LOOP", {
     youtubeId: "KLlXCFG5TnA",
-    title: "Two Sum \u2014 hash map walkthrough",
+    title: "Two Sum - Leetcode 1 - HashMap - Python",
     channel: "NeetCode",
     durationSec: 345,
     startSec: 78

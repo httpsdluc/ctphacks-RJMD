@@ -44,45 +44,57 @@ export function buildVideo(
 /**
  * Curated fallback videos keep the coaching flow useful without a YouTube API key.
  */
+/**
+ * The video id is verified real: KLlXCFG5TnA is "Two Sum - Leetcode 1 - HashMap
+ * - Python" by NeetCode (checked against YouTube's oEmbed endpoint). The title
+ * here now matches the actual title rather than a paraphrase, because the panel
+ * shows it and a judge may recognise the video.
+ *
+ * STILL TO DO — every entry currently points at the SAME moment (startSec 78).
+ * The `why` lines above promise a specific moment per misconception ("watch the
+ * moment they count how many pairs..."), and right now they all land in the
+ * same place, so those promises are not kept. Scrub the video once and set six
+ * real offsets. durationSec is also unverified — oEmbed does not report length.
+ */
 export const VIDEO_MAP: Partial<Record<MisconceptionId, VideoRecommendation>> = {
   TS_BRUTE_FORCE_ONLY: buildVideo('TS_BRUTE_FORCE_ONLY', {
     youtubeId: 'KLlXCFG5TnA',
-    title: 'Two Sum — hash map walkthrough',
+    title: 'Two Sum - Leetcode 1 - HashMap - Python',
     channel: 'NeetCode',
     durationSec: 345,
     startSec: 78,
   }),
   TS_COMPLEMENT_CONFUSION: buildVideo('TS_COMPLEMENT_CONFUSION', {
     youtubeId: 'KLlXCFG5TnA',
-    title: 'Two Sum — hash map walkthrough',
+    title: 'Two Sum - Leetcode 1 - HashMap - Python',
     channel: 'NeetCode',
     durationSec: 345,
     startSec: 78,
   }),
   TS_MAP_DIRECTION_FLIPPED: buildVideo('TS_MAP_DIRECTION_FLIPPED', {
     youtubeId: 'KLlXCFG5TnA',
-    title: 'Two Sum — hash map walkthrough',
+    title: 'Two Sum - Leetcode 1 - HashMap - Python',
     channel: 'NeetCode',
     durationSec: 345,
     startSec: 78,
   }),
   TS_INSERT_BEFORE_CHECK: buildVideo('TS_INSERT_BEFORE_CHECK', {
     youtubeId: 'KLlXCFG5TnA',
-    title: 'Two Sum — hash map walkthrough',
+    title: 'Two Sum - Leetcode 1 - HashMap - Python',
     channel: 'NeetCode',
     durationSec: 345,
     startSec: 78,
   }),
   TS_RETURNS_VALUES_NOT_INDICES: buildVideo('TS_RETURNS_VALUES_NOT_INDICES', {
     youtubeId: 'KLlXCFG5TnA',
-    title: 'Two Sum — hash map walkthrough',
+    title: 'Two Sum - Leetcode 1 - HashMap - Python',
     channel: 'NeetCode',
     durationSec: 345,
     startSec: 78,
   }),
   TS_OFF_BY_ONE_INNER_LOOP: buildVideo('TS_OFF_BY_ONE_INNER_LOOP', {
     youtubeId: 'KLlXCFG5TnA',
-    title: 'Two Sum — hash map walkthrough',
+    title: 'Two Sum - Leetcode 1 - HashMap - Python',
     channel: 'NeetCode',
     durationSec: 345,
     startSec: 78,
