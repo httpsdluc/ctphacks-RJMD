@@ -40,7 +40,7 @@ export function App() {
     <div className="sn-shell">
       <header className="sn-welcome">
         <div className="sn-welcome-copy">
-          <span className="sn-kicker">Sidenote</span>
+          <span className="sn-kicker">ThinkPad</span>
           <h1>Hello, {username}</h1>
           <p>How can I help you learn today?</p>
         </div>

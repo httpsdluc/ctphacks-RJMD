@@ -22,7 +22,7 @@ export function DesignPreview() {
   return (
     <main className="sn-shell sn-design-board">
       <header className="sn-header sn-design-header">
-        <div><span className="sn-kicker">Interface study · 01</span><h1 className="sn-display">Sidenote</h1></div>
+        <div><span className="sn-kicker">Interface study · 01</span><h1 className="sn-display">ThinkPad</h1></div>
         <span className="sn-status"><i /> Active session</span>
       </header>
       <PracticePicker value={practiceLevel} onChange={setPracticeLevel} />
