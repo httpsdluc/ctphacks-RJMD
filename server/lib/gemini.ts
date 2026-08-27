@@ -2,13 +2,13 @@
  * The only place we talk to Gemini. Returns parsed JSON or null — never throws,
  * never leaks an SDK error upward. Every caller treats null as "use the fallback".
  *
- * Uses models.generateContent rather than the newer interactions API: that one
- * still prints an "experimental, may change" warning, and demo day is a bad
- * time to find out what changed.
+ * Uses the Interactions API, which is what Google recommends and what the
+ * quickstart documents. Requires @google/genai >= 2.x: on 1.x, interactions
+ * exists but `output_text` is not implemented and the SDK warns that the
+ * surface is experimental.
  */
 
 import { GoogleGenAI } from '@google/genai';
-import type { Schema } from '@google/genai';
 
 const MODEL = process.env.COACH_MODEL ?? 'gemini-3.7-flash';
 const TIMEOUT_MS = 9_000;
@@ -20,6 +20,9 @@ function getClient(): GoogleGenAI | null {
   return client;
 }
 
+/** Plain JSON Schema — lowercase types, as Pydantic and Zod emit. */
+export type JsonSchema = { [k: string]: unknown };
+
 export interface GeminiResult<T> {
   value: T | null;
   latencyMs: number;
@@ -27,7 +30,10 @@ export interface GeminiResult<T> {
   error?: string;
 }
 
-export async function generateJson<T>(input: string, schema: Schema): Promise<GeminiResult<T>> {
+export async function generateJson<T>(
+  input: string,
+  schema: JsonSchema,
+): Promise<GeminiResult<T>> {
   const started = Date.now();
   const ai = getClient();
   if (!ai) {
@@ -35,14 +41,14 @@ export async function generateJson<T>(input: string, schema: Schema): Promise<Ge
   }
 
   try {
-    const response = await Promise.race([
-      ai.models.generateContent({
+    const interaction = await Promise.race([
+      ai.interactions.create({
         model: MODEL,
-        contents: input,
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema: schema,
-          temperature: 0.7,
+        input,
+        response_format: {
+          type: 'text',
+          mime_type: 'application/json',
+          schema,
         },
       }),
       new Promise<never>((_, reject) =>
@@ -50,7 +56,16 @@ export async function generateJson<T>(input: string, schema: Schema): Promise<Ge
       ),
     ]);
 
-    const text = response.text;
+    if (interaction.status !== 'completed') {
+      return {
+        value: null,
+        latencyMs: Date.now() - started,
+        model: MODEL,
+        error: `status ${interaction.status}`,
+      };
+    }
+
+    const text = interaction.output_text;
     if (!text) {
       return { value: null, latencyMs: Date.now() - started, model: MODEL, error: 'empty output' };
     }

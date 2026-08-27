@@ -2,5 +2,7 @@
   "name": "sidenote-coach",
   "private": true,
   "type": "module",
-  "dependencies": { "@google/genai": "^1.0.0" }
+  "dependencies": {
+    "@google/genai": "^2.19.0"
+  }
 }

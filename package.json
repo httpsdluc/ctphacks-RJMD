@@ -12,16 +12,16 @@
     "dry-run": "node --experimental-strip-types server/dryrun.ts"
   },
   "dependencies": {
+    "@google/genai": "^2.19.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "@google/genai": "^1.0.0"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.268",
+    "@types/node": "^22.5.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "esbuild": "^0.23.0",
-    "typescript": "^5.5.4",
-    "@types/node": "^22.5.0"
+    "typescript": "^5.5.4"
   }
 }

@@ -9,7 +9,7 @@
  * constraints from escalation.ts. The model's only job is wording.
  */
 
-import type { Schema } from '@google/genai';
+import type { JsonSchema } from './gemini.ts';
 import { MISCONCEPTION_IDS, MISCONCEPTION_LABELS } from '../../shared/contracts.ts';
 import type { LearnerAttempt, MisconceptionId, ProblemContext } from '../../shared/contracts.ts';
 import type { Intervention } from './escalation.ts';
@@ -33,17 +33,17 @@ Rules:
   inventing a misconception. A wrong diagnosis is worse than no diagnosis.`;
 
 export const DIAGNOSIS_SCHEMA = {
-  type: 'OBJECT',
+  type: 'object',
   properties: {
-    misconceptionId: { type: 'STRING', enum: [...MISCONCEPTION_IDS] },
-    confidence: { type: 'NUMBER' },
+    misconceptionId: { type: 'string', enum: [...MISCONCEPTION_IDS] },
+    confidence: { type: 'number' },
     evidence: {
-      type: 'STRING',
+      type: 'string',
       description: 'One short sentence quoting what in their work led you here.',
     },
   },
   required: ['misconceptionId', 'confidence', 'evidence'],
-} as Schema;
+} as JsonSchema;
 
 export function buildDiagnosisInput(problem: ProblemContext, attempt: LearnerAttempt): string {
   return `${DIAGNOSIS_SYSTEM}
@@ -88,21 +88,21 @@ const MODALITY_BRIEF = {
 } as const;
 
 export const COACH_SCHEMA = {
-  type: 'OBJECT',
+  type: 'object',
   properties: {
-    message: { type: 'STRING' },
-    analogy: { type: 'STRING', description: 'Only when the modality is analogy. Otherwise "".' },
+    message: { type: 'string' },
+    analogy: { type: 'string', description: 'Only when the modality is analogy. Otherwise "".' },
     comprehensionQuestion: {
-      type: 'STRING',
+      type: 'string',
       description: 'Only when asked for. A question they answer in one sentence. Otherwise "".',
     },
     expectedIdea: {
-      type: 'STRING',
+      type: 'string',
       description: 'What a correct answer to the comprehension question contains. Otherwise "".',
     },
   },
   required: ['message', 'analogy', 'comprehensionQuestion', 'expectedIdea'],
-} as Schema;
+} as JsonSchema;
 
 export function buildCoachInput(
   problem: ProblemContext,
