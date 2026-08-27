@@ -1,14 +1,15 @@
 export type PracticeLevel = 'Easy' | 'Medium' | 'Hard';
 
 /**
- * The picker used to be decorative: three tabs, a problem name, and an arrow
- * that did nothing.
+ * Keeps the visual design from the panel work, and restores the behaviour a
+ * merge dropped: the arrow actually navigates, and the two problems the coach
+ * cannot teach say so.
  *
- * It is now honest about what the coach can actually do. The misconception
- * taxonomy in shared/contracts.ts is Two Sum specific — every id starts TS_ —
- * so pointing the coach at another problem would produce a confident diagnosis
- * drawn from the wrong vocabulary. A judge clicking "Medium" and getting
- * nonsense is far worse than a judge seeing an honest "not yet".
+ * The misconception taxonomy in shared/contracts.ts is Two Sum specific —
+ * every id starts TS_ — so pointing the coach at another problem yields a
+ * confident diagnosis drawn from the wrong vocabulary. A judge clicking
+ * "Medium" and getting nonsense is worse than a judge reading an honest
+ * "not yet".
  */
 const PROBLEMS: Record<
   PracticeLevel,
@@ -35,7 +36,6 @@ export function PracticePicker({
   const open = () => {
     if (!problem.supported) return;
     const url = `https://leetcode.com/problems/${problem.slug}/`;
-    // activeTab is enough: this only runs from a click the learner made.
     chrome.tabs?.query({ active: true, currentWindow: true }, ([tab]) => {
       if (tab?.id) chrome.tabs.update(tab.id, { url });
       else window.open(url, '_blank');

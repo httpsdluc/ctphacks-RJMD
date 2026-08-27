@@ -84,14 +84,14 @@ async function publish(): Promise<void> {
 
   const result = detectProblem();
   if (result.ok) {
-    console.debug('[sidenote] detected', result.value.title, '|', result.value.language);
+    console.debug('[thinkpad] detected', result.value.title, '|', result.value.language);
     send({ type: 'PROBLEM_DETECTED', payload: result.value });
     return;
   }
 
   // Say why, loudly enough to debug from the page console.
   console.warn(
-    `[sidenote] falling back to paste: ${result.error.code}` +
+    `[thinkpad] falling back to paste: ${result.error.code}` +
       (result.error.strategy ? ` (${result.error.strategy})` : '') +
       ` — ${result.error.message}`,
   );

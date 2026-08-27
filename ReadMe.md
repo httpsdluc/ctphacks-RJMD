@@ -1,5 +1,6 @@
-# We are team RJMD
-# this is for ctpHack
+# ThinkPad
+
+*Team RJMD · CTPHacks*
 
 
 A coding coach that asks instead of answers. Chrome MV3 side panel.

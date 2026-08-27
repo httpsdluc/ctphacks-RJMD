@@ -154,7 +154,7 @@ onMessage({
 
   PROBLEM_UNAVAILABLE: (msg) => {
     // A5: the panel will show the paste box. Nothing else to do.
-    console.debug('[sidenote] adapter fell back to paste:', msg.payload.code);
+    console.debug('[thinkpad] adapter fell back to paste:', msg.payload.code);
   },
 
   PROBLEM_REQUEST: async () => {
