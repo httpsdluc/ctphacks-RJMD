@@ -58,3 +58,27 @@ export async function recallProblem(): Promise<ProblemContext | null> {
     return null;
   }
 }
+
+/**
+ * B6 shows a session count. Nothing incremented it, so it read "Session 0"
+ * forever — which quietly undercuts the whole "it remembers you" claim the
+ * profile card is making.
+ *
+ * A session is one browser session: the flag lives in session storage, so it
+ * counts once no matter how many times the worker restarts or the panel is
+ * reopened, and counts again tomorrow.
+ */
+const SESSION_FLAG = 'sidenote.sessionCounted.v1';
+
+export async function countSessionOnce(profile: LearnerProfile): Promise<LearnerProfile> {
+  try {
+    const bag = await chrome.storage.session.get(SESSION_FLAG);
+    if (bag[SESSION_FLAG]) return profile;
+    await chrome.storage.session.set({ [SESSION_FLAG]: true });
+    const bumped = { ...profile, sessionCount: profile.sessionCount + 1 };
+    await writeProfile(bumped);
+    return bumped;
+  } catch {
+    return profile;
+  }
+}

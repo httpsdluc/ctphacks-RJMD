@@ -73,7 +73,7 @@ export async function coach(req: Request): Promise<Response> {
     return json(fallbackFor('NONE', { note: 'unparseable request' }));
   }
 
-  const { problem, attempt, profile } = payload;
+  const { problem, attempt, profile, requestedAction } = payload;
   if (!problem || !attempt || !profile) {
     return json(fallbackFor('NONE', { note: 'incomplete request' }));
   }
@@ -90,7 +90,16 @@ export async function coach(req: Request): Promise<Response> {
   // NONE tells the learner to go write it. We do not let the model say that
   // about an approach with no memory in it. See lib/guard.ts.
   const guarded = guardDiagnosis(proposed, attempt.text, problem.code);
-  const misconceptionId = guarded.misconceptionId;
+
+  // Pressing "give me a hint" sends no new explanation. Diagnosing an empty
+  // string returns NONE, which made the coach forget what it was helping with
+  // and congratulate the learner mid-struggle. With nothing new to read, carry
+  // the previous misconception forward instead of inventing a fresh verdict.
+  const nothingNewToRead = attempt.text.trim().length < 20 && requestedAction !== null;
+  const misconceptionId: MisconceptionId =
+    nothingNewToRead && guarded.misconceptionId === 'NONE'
+      ? (profile.lastIntervention?.misconceptionId ?? 'NONE')
+      : guarded.misconceptionId;
 
   /* 2. Our code decides how hard to push. ------------------------------ */
   // The count the machine reasons about is the one AFTER this attempt.
@@ -192,7 +201,9 @@ function assemble(
     misconceptionId,
     confidence: intervention.exhausted ? CONFIDENCE_FLOOR : 0.9,
     message: written.message,
-    hintLevel: intervention.hintLevel,
+    // NONE means "your approach is sound". Labelling that "Hint 1 of 4"
+    // tells the learner they are being corrected while the words praise them.
+    hintLevel: misconceptionId === 'NONE' ? null : intervention.hintLevel,
     modality: intervention.modality,
     offeredActions: intervention.offeredActions,
     blockedActions: intervention.blockedActions,

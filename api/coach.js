@@ -22817,7 +22817,7 @@ async function coach(req) {
   } catch {
     return json2(fallbackFor("NONE", { note: "unparseable request" }));
   }
-  const { problem, attempt, profile } = payload;
+  const { problem, attempt, profile, requestedAction } = payload;
   if (!problem || !attempt || !profile) {
     return json2(fallbackFor("NONE", { note: "incomplete request" }));
   }
@@ -22827,7 +22827,8 @@ async function coach(req) {
   );
   const proposed = diag.value && diag.value.confidence >= CONFIDENCE_FLOOR ? diag.value.misconceptionId : "NONE";
   const guarded = guardDiagnosis(proposed, attempt.text, problem.code);
-  const misconceptionId = guarded.misconceptionId;
+  const nothingNewToRead = attempt.text.trim().length < 20 && requestedAction !== null;
+  const misconceptionId = nothingNewToRead && guarded.misconceptionId === "NONE" ? profile.lastIntervention?.misconceptionId ?? "NONE" : guarded.misconceptionId;
   const projected = {
     ...profile,
     misconceptionCounts: {
@@ -22895,7 +22896,9 @@ function assemble(payload, misconceptionId, intervention, written, corrected, me
     misconceptionId,
     confidence: intervention.exhausted ? CONFIDENCE_FLOOR : 0.9,
     message: written.message,
-    hintLevel: intervention.hintLevel,
+    // NONE means "your approach is sound". Labelling that "Hint 1 of 4"
+    // tells the learner they are being corrected while the words praise them.
+    hintLevel: misconceptionId === "NONE" ? null : intervention.hintLevel,
     modality: intervention.modality,
     offeredActions: intervention.offeredActions,
     blockedActions: intervention.blockedActions,

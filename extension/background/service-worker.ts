@@ -6,7 +6,13 @@
 
 import { onMessage, send } from '../lib/bus';
 import { askCoach } from '../lib/coachClient';
-import { readProfile, recallProblem, rememberProblem, writeProfile } from '../lib/storage';
+import {
+  countSessionOnce,
+  readProfile,
+  recallProblem,
+  rememberProblem,
+  writeProfile,
+} from '../lib/storage';
 import { applyProfileDelta } from '../../shared/profile';
 import { fromPaste } from '../adapters/leetcode';
 import type {
@@ -57,7 +63,7 @@ async function runCoach(
 
   send({ type: 'COACH_PENDING' });
 
-  const profile = await readProfile();
+  const profile = await countSessionOnce(await readProfile());
   const response = await askCoach({ problem, attempt, profile, requestedAction });
   lastResponse = response;
 
