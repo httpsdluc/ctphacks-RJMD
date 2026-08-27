@@ -87,9 +87,9 @@ export function App() {
         className="sn-link"
         onClick={() => setShowHistory((v) => !v)}
       >
-        {showHistory ? 'Hide' : 'Show'} what we've covered ({coach.history.length})
+        {showHistory ? 'Hide' : 'Show'} what we've covered
       </button>
-      {showHistory && <HintHistory history={coach.history} />}
+      {showHistory && <HintHistory history={coach.history} profile={coach.profile} />}
 
       <ProfileCard profile={coach.profile} />
     </div>
