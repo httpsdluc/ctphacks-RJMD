@@ -22692,7 +22692,7 @@ function buildTwoSumVisual(values) {
 var VIDEO_MAP = {};
 
 // server/api/coach.ts
-var config = { runtime: "edge" };
+var config = { runtime: "nodejs", maxDuration: 30 };
 var CORS = {
   "content-type": "application/json",
   "access-control-allow-origin": "*",

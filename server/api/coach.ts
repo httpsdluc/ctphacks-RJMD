@@ -37,7 +37,13 @@ import type {
   SkillState,
 } from '../../shared/contracts.ts';
 
-export const config = { runtime: 'edge' };
+/**
+ * Node runtime, not edge. The edge sandbox hung on boot with this bundle —
+ * OPTIONS timed out too, and OPTIONS returns 204 before touching Gemini. The
+ * same artifact runs correctly under Node locally, so production now matches
+ * the environment we can actually verify.
+ */
+export const config = { runtime: 'nodejs', maxDuration: 30 };
 
 const CORS = {
   'content-type': 'application/json',
