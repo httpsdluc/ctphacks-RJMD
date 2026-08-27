@@ -29,7 +29,7 @@ export function App() {
   if (coach.status === 'needs_paste') {
     return (
       <div className="sn-shell">
-        <PasteFallback onSubmit={coach.submitPaste} />
+        <PasteFallback onSubmit={coach.submitPaste} error={coach.detectionError} />
       </div>
     );
   }

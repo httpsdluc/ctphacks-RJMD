@@ -3,8 +3,10 @@ import { useState } from 'react';
 /** A5 / B8 — the demo default path. Works with the content script disabled. */
 export function PasteFallback({
   onSubmit,
+  error,
 }: {
   onSubmit: (v: { statement: string; code: string; language: string }) => void;
+  error?: { code: string; message: string; strategy?: string } | null;
 }) {
   const [statement, setStatement] = useState('');
   const [code, setCode] = useState('');
@@ -20,6 +22,12 @@ export function PasteFallback({
         onClick={() => onSubmit({ statement, code, language: 'python' })}>
         Start
       </button>
+      {error && (
+        <p className="sn-why" style={{ marginTop: 12 }}>
+          Diagnostics: {error.code}
+          {error.strategy ? ` (${error.strategy})` : ''} — {error.message}
+        </p>
+      )}
     </div>
   );
 }

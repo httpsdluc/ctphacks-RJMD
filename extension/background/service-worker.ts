@@ -16,6 +16,7 @@ import {
 import { applyProfileDelta } from '../../shared/profile';
 import { fromPaste } from '../adapters/leetcode';
 import type {
+  AdapterError,
   CoachResponse,
   HelpAction,
   LearnerAttempt,
@@ -26,6 +27,7 @@ import type {
 const problems = new Map<number, ProblemContext>();
 let lastProblem: ProblemContext | null = null;
 let lastResponse: CoachResponse | null = null;
+let lastError: AdapterError | null = null;
 
 function remember(tabId: number | undefined, problem: ProblemContext): void {
   if (typeof tabId === 'number') problems.set(tabId, problem);
@@ -95,7 +97,7 @@ onMessage({
   PROBLEM_REQUEST: async () => {
     const problem = await currentProblem();
     const profile = await readProfile();
-    return { problem, profile, lastResponse };
+    return { problem, profile, lastResponse, lastError };
   },
 
   PASTE_CONTEXT: async (msg) => {
