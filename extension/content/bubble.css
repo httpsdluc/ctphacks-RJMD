@@ -1,8 +1,23 @@
-/* A2: must not overlap the editor. Bottom-left is empty on every LeetCode layout. */
+/*
+ * A2 — the coach bubble.
+ *
+ * Position was measured on a live leetcode.com/problems/two-sum page, not
+ * guessed. Findings:
+ *   - The obvious bottom-left corner lands on LeetCode's sticky action bar
+ *     (the upvote / downvote / favourite row). Sitting there blocks a real
+ *     control, which is worse than looking wrong.
+ *   - The right half of the viewport is the Monaco editor at every height
+ *     that is otherwise free, so the whole right side is out.
+ *   - 100px up the left edge clears the action bar and blocks nothing.
+ *
+ * The description panel scrolls underneath, so the bubble does float over
+ * prose. That is what a floating button does; it is kept small and slightly
+ * transparent until hover so it reads as chrome rather than content.
+ */
 #sidenote-bubble {
   position: fixed;
   left: 20px;
-  bottom: 20px;
+  bottom: 100px;
   z-index: 2147483000;
   width: 44px;
   height: 44px;
@@ -13,10 +28,12 @@
   color: #fff;
   background: #2f6f4f;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  opacity: 0.88;
+  transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
 }
 
 #sidenote-bubble:hover {
+  opacity: 1;
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.34);
 }
@@ -24,4 +41,12 @@
 #sidenote-bubble:focus-visible {
   outline: 2px solid #8fd3ae;
   outline-offset: 3px;
+  opacity: 1;
+}
+
+/* Narrow windows: LeetCode stacks the panes and the action bar grows. */
+@media (max-height: 700px) {
+  #sidenote-bubble {
+    bottom: 76px;
+  }
 }

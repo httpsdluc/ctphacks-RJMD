@@ -33,7 +33,15 @@ function unmountBubble(): void {
   document.getElementById(BUBBLE_ID)?.remove();
 }
 
-function publish(): void {
+/**
+ * A8 — the description pane renders after document_idle on a cold load, so a
+ * single attempt reports SELECTOR_FAILED on a page that is merely still
+ * loading. Retry on a short backoff before falling back to paste; the learner
+ * should not be asked to paste something the page was about to give us.
+ */
+const RETRY_DELAYS_MS = [0, 400, 900, 1800];
+
+function publish(attempt = 0): void {
   if (!slugFromUrl(location.href)) {
     unmountBubble();
     return;
@@ -43,9 +51,16 @@ function publish(): void {
   const result = detectProblem();
   if (result.ok) {
     send({ type: 'PROBLEM_DETECTED', payload: result.value });
-  } else {
-    send({ type: 'PROBLEM_UNAVAILABLE', payload: result.error });
+    return;
   }
+
+  const next = attempt + 1;
+  if (next < RETRY_DELAYS_MS.length && result.error.code === 'SELECTOR_FAILED') {
+    setTimeout(() => publish(next), RETRY_DELAYS_MS[next]);
+    return;
+  }
+
+  send({ type: 'PROBLEM_UNAVAILABLE', payload: result.error });
 }
 
 /** LeetCode is a SPA — the URL changes without a reload. */
@@ -54,7 +69,7 @@ function watchNavigation(): void {
   new MutationObserver(() => {
     if (location.href !== last) {
       last = location.href;
-      setTimeout(publish, 600); // let the new pane render
+      setTimeout(() => publish(), 600); // let the new pane render
     }
   }).observe(document.body, { childList: true, subtree: true });
 }
