@@ -8,9 +8,9 @@
  * surface is experimental.
  */
 
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI } from '@google/genai/web';
 
-const MODEL = process.env.COACH_MODEL ?? 'gemini-3.7-flash';
+const MODEL = process.env.COACH_MODEL ?? 'gemini-3.1-flash-lite';
 const TIMEOUT_MS = 9_000;
 
 let client: GoogleGenAI | null = null;

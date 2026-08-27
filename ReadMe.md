@@ -78,6 +78,13 @@ escalation beat before demoing it.
 
 ### Deploy
 
+`api/coach.js` is **generated and committed**. Vercel discovers functions by
+scanning the repo, and its edge bundler rejects the `.ts` import specifiers the
+test runner needs — so `scripts/build-api.mjs` bundles the whole handler graph
+into one file. **Run `npm run build` before pushing any change under `server/`
+or `shared/`, or the deployed coach will be stale.**
+
+
 Set `GEMINI_API_KEY` and `COACH_MODEL` in the Vercel dashboard — never in the
 repo. Then put the deployed URL into `COACH_ENDPOINT` in `shared/contracts.ts`
 and the matching origin in `extension/manifest.json` under `host_permissions`.

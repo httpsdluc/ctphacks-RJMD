@@ -7,6 +7,7 @@
  * The panel builds as IIFE too, so the manifest needs no "type": "module".
  */
 import { context, build } from 'esbuild';
+import { execFileSync } from 'node:child_process';
 import { cp, mkdir, rm } from 'node:fs/promises';
 
 const watch = process.argv.includes('--watch');
@@ -31,6 +32,10 @@ const options = {
   logLevel: 'info',
 };
 
+function buildApi() {
+  execFileSync(process.execPath, ['scripts/build-api.mjs'], { stdio: 'inherit' });
+}
+
 async function copyStatic() {
   await cp('extension/manifest.json', `${outdir}/manifest.json`);
   await cp('extension/content/bubble.css', `${outdir}/bubble.css`);
@@ -45,5 +50,6 @@ if (watch) {
 } else {
   await build(options);
   await copyStatic();
-  console.log('built dist/');
+  buildApi();
+  console.log('built dist/ and api/coach.js');
 }
