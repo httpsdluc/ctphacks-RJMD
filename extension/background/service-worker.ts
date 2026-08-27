@@ -18,6 +18,7 @@ import { fromPaste } from '../adapters/leetcode';
 import type {
   AdapterError,
   CoachResponse,
+  Result,
   HelpAction,
   LearnerAttempt,
   ProblemContext,
@@ -40,12 +41,46 @@ async function activeTabId(): Promise<number | undefined> {
   return tab?.id;
 }
 
+/**
+ * Ask the page directly. The content script answers PROBLEM_REQUEST with a live
+ * Result, so this works even if its original announcement never arrived.
+ */
+async function askTab(tabId: number): Promise<ProblemContext | null> {
+  try {
+    const result = (await chrome.tabs.sendMessage(tabId, { type: 'PROBLEM_REQUEST' })) as
+      | Result<ProblemContext>
+      | undefined;
+    if (result?.ok) {
+      remember(tabId, result.value);
+      return result.value;
+    }
+    if (result && !result.ok) lastError = result.error;
+    return null;
+  } catch {
+    // No content script on this tab (wrong site, or not injected yet).
+    return null;
+  }
+}
+
+/**
+ * Detection used to be push-only: the content script announced the problem once
+ * at page load and the worker held it in memory. Any worker restart after that
+ * — and MV3 workers are killed aggressively — left the panel with nothing and
+ * no way to recover, which looked exactly like a broken selector.
+ *
+ * So: check the caches, then ASK the page. Pull beats push for something we can
+ * re-derive on demand.
+ */
 async function currentProblem(): Promise<ProblemContext | null> {
   const id = await activeTabId();
   if (typeof id === 'number' && problems.has(id)) return problems.get(id)!;
   if (lastProblem) return lastProblem;
-  // The worker was restarted since detection. Session storage still has it.
-  return recallProblem();
+
+  const stored = await recallProblem();
+  if (stored) return stored;
+
+  if (typeof id === 'number') return askTab(id);
+  return null;
 }
 
 async function runCoach(
